@@ -27,9 +27,7 @@ public class CacheExecutor {
 
     public void setValueAsync(QueryContext context, CacheHandler cacheHandler) {
         FunctionAsyncTask.getRunAsyncInstance()
-                .addTask(() -> {
-                    this.setValue(context, cacheHandler);
-                }).exec();
+            .addTask(() -> this.setValue(context, cacheHandler));
     }
 
     public Object setValue(QueryContext context, CacheHandler cacheHandler) {
