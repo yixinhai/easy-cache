@@ -1,5 +1,6 @@
 package com.xh.easy.easycache;
 
+import com.xh.easy.easycache.aop.CacheAble;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;

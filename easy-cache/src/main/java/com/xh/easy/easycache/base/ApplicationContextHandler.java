@@ -8,22 +8,22 @@ import javax.annotation.Nonnull;
 
 public class ApplicationContextHandler implements ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+    private static ApplicationContext context;
 
     @Override
     public void setApplicationContext(@Nonnull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+        context = applicationContext;
     }
 
-    public Class<?> getClassByName(String name) {
-        return applicationContext.getType(name);
+    public static Class<?> getClassByName(String name) {
+        return context.getType(name);
     }
 
-    public Object getBeanByName(String name, Class<?> clazz) {
-        return applicationContext.getBean(name, clazz);
+    public static Object getBeanByName(String name, Class<?> clazz) {
+        return context.getBean(name, clazz);
     }
 
-    public <T> T getBeanByType(Class<T> clazz) {
-    	return applicationContext.getBean(clazz);
+    public static <T> T getBeanByType(Class<T> clazz) {
+    	return context.getBean(clazz);
     }
 }

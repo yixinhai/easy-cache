@@ -1,0 +1,168 @@
+package com.xh.easy.easycache.core.executor;
+
+import com.alibaba.fastjson.JSON;
+import com.xh.easy.easycache.utils.async.FunctionAsyncTask;
+import com.xh.easy.easycache.base.ClassHandler;
+import com.xh.easy.easycache.entity.context.CacheContext;
+import com.xh.easy.easycache.entity.model.CacheInfo;
+import com.xh.easy.easycache.entity.context.QueryContext;
+import com.xh.easy.easycache.entity.context.UpdateContext;
+import com.xh.easy.easycache.utils.RedissonLockService;
+import com.xh.easy.easycache.core.healthy.event.UpdateFailed;
+import com.xh.easy.easycache.core.healthy.event.UpdateSuccess;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
+
+import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
+
+/**
+ * 缓存容错处理
+ *
+ * @author yixinhai
+ */
+@Slf4j
+public class FaultTolerance implements CacheExecutor {
+
+    private MultiLevelCacheExecutor cacheExecutor;
+
+    private final RedissonLockService lock;
+
+    public FaultTolerance(MultiLevelCacheExecutor cacheExecutor) {
+        this.cacheExecutor = cacheExecutor;
+        this.lock = ClassHandler.getBeanByType(RedissonLockService.class);
+    }
+
+    public void setCacheExecutor(MultiLevelCacheExecutor cacheExecutor) {
+        this.cacheExecutor = cacheExecutor;
+    }
+
+    @Override
+    public CacheInfo getValue(QueryContext context) {
+        String key = context.getKey();
+        if (key == null || key.isEmpty()) {
+            log.error("{} act=getValue msg=缓存key参数不合法", LOG_STR);
+            return null;
+        }
+
+        // 获取目标方法返回值
+        CacheInfo info = cacheExecutor.loadValue(context);
+
+        // 缓存穿透处理
+        if (this.cachePenetration(context, info)) {
+            log.info("{} act=getValue msg=命中缓存穿透策略，返回null，key={}", LOG_STR, key);
+            return null;
+        }
+
+        return info;
+    }
+
+    @Override
+    public Object hit(QueryContext context, CacheInfo info) {
+        Object o = info.getValue(context.getResultType());
+
+        // 若是l2缓存获取的返回值，直接返回
+        if (info.isL2Cache()) {
+            log.info("act=hit msg=请求命中l2缓存 result={}", JSON.toJSONString(o));
+            return o;
+        }
+
+        // 缓存信息和数据库一致，直接返回
+        if (info.coherent()) {
+            log.info("act=hit msg=请求命中缓存 result={}", JSON.toJSONString(o));
+            return o;
+        }
+
+        // 在延迟删除时效内，尝试更新缓存
+        if (info.lockTimeout()) {
+            setValueAsync(context);
+            log.info("act=hit msg=请求命中缓存 result={}", JSON.toJSONString(o));
+            return o;
+        }
+
+        // 在延迟删除实效外，同步更新缓存
+        return setValue(context);
+    }
+
+    @Override
+    public Object miss(QueryContext context) {
+        return lock.executeTryLock(context.getKey(), () -> {
+
+            // 再次检查缓存，防止其他线程已经更新了缓存
+            CacheInfo info = getValue(context);
+            if (Objects.nonNull(info) && info.coherent()) {
+                log.info("act=miss msg=请求命中缓存 cacheInfo={}", info);
+                return info.isDefaultNullValue() ? null : info.getValue((context.getResultType()));
+            }
+
+            // 未命中缓存，执行目标方法并记录缓存
+            return cacheExecutor.miss(context);
+        });
+    }
+
+    @Override
+    public boolean invalid(CacheContext context) {
+        String key = context.getKey();
+
+        Boolean updateResult = lock.executeTryLock(key, () -> {
+            try {
+                return cacheExecutor.invalid(context);
+            } catch (Exception e) {
+                log.error("act=invalid msg=失效缓存失败 clusterId={} key={}", context.getClusterId(), key);
+                return false;
+            }
+        });
+
+        if (updateResult == null || !updateResult) {
+            // TODO 标记重试
+
+            new UpdateFailed(key).accept();
+            return false;
+        }
+
+        new UpdateSuccess(key).accept();
+        return true;
+    }
+
+    /**
+     * 缓存锁定处理
+     *
+     * @param context 缓存上下文
+     */
+    public void lockCacheInfo(UpdateContext context) {
+        CacheBuilder.getAllHandler().forEach(handler -> cacheExecutor.invalid(context));
+    }
+
+    /**
+     * 是否命中穿透处理
+     *
+     * @param context 缓存上下文
+     * @param info 缓存信息
+     * @return 是否开启并命中缓存穿透
+     */
+    private boolean cachePenetration(QueryContext context, CacheInfo info) {
+        return context.cachePenetration() && info.isDefaultNullValue();
+    }
+
+    /**
+     * 异步写入缓存
+     *
+     * @param context 缓存上下文
+     */
+    private void setValueAsync(QueryContext context) {
+        FunctionAsyncTask.getRunAsyncInstance()
+            .addTask(() -> {
+                cacheExecutor.setValue(context, context.proceed());
+            }).exec();
+    }
+
+    /**
+     * 同步写入缓存
+     *
+     * @param context 缓存上下文
+     */
+    private Object setValue(QueryContext context) {
+        return cacheExecutor.setValue(context, context.proceed());
+    }
+
+}

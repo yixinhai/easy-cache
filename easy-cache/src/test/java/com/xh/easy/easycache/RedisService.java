@@ -1,6 +1,6 @@
 package com.xh.easy.easycache;
 
-import com.xh.easy.easycache.handler.BaseRedisService;
+import com.xh.easy.easycache.core.BaseRedisService;
 
 import java.util.Map;
 
