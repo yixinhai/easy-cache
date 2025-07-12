@@ -9,14 +9,14 @@ import com.xh.easy.easycache.context.QueryContext;
  *
  * @author yixinhai
  */
-public interface CacheHandler {
+public abstract class CacheHandler {
 
     /**
      * 获取缓存信息
      *
      * @param context 缓存上下文
      */
-    CacheInfo getValue(QueryContext context);
+    abstract CacheInfo getValue(QueryContext context);
 
     /**
      * 同步set缓存
@@ -25,12 +25,12 @@ public interface CacheHandler {
      * @param o 目标value
      * @return 目标value
      */
-    Object setValue(QueryContext context, Object o);
+    abstract Object setValue(QueryContext context, Object o);
 
     /**
      * ping
      */
-    boolean ping();
+    abstract boolean ping(String clusterId);
 
     /**
      * 失效缓存
@@ -38,5 +38,5 @@ public interface CacheHandler {
      * @param context 缓存上下文
      * @return 是否失效成功
      */
-    boolean invalid(CacheContext context);
+    abstract boolean invalid(CacheContext context);
 }

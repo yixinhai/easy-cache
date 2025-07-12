@@ -6,6 +6,7 @@ import com.xh.easy.easycache.context.CacheContext;
 import com.xh.easy.easycache.context.CacheInfo;
 import com.xh.easy.easycache.context.QueryContext;
 import com.xh.easy.easycache.context.TimeInfo;
+import com.xh.easy.easycache.risk.healthy.ClusterHealthInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,10 +22,13 @@ import static com.xh.easy.easycache.context.CacheInfo.*;
  */
 @Slf4j
 @Component(value = "redisCache")
-public class RedisCache implements CacheHandler {
+public class RedisCache extends CacheChain {
 
     @Autowired
     private ClusterConfiguration clusterConfiguration;
+
+    @Autowired
+    private ClusterHealthInfo clusterHealthInfo;
 
 
     @Override
@@ -58,9 +62,10 @@ public class RedisCache implements CacheHandler {
     }
 
     @Override
-    public boolean ping() {
+    public boolean ping(String clusterId) {
+//        return getService(clusterId).ping(redisCache);
         return true;
-    }
+    };
 
     @Override
     public boolean invalid(CacheContext context) {
@@ -68,6 +73,16 @@ public class RedisCache implements CacheHandler {
         info.setLockInfo(LOCKED);
         info.setUnlockTime(String.valueOf(System.currentTimeMillis() + 1500));
         return "OK".equals(getService(context).hsetall(context.getKey(), info.parseCacheMap()));
+    }
+
+    @Override
+    public boolean support(QueryContext context) {
+        return clusterHealthInfo.isClusterAvailable(context.getKey(), context.getClusterId());
+    }
+
+    @Override
+    public Object loadValue(QueryContext context) {
+        return getValue(context);
     }
 
     private Map<String, String> convertValue(QueryContext context, Object o) {
@@ -78,8 +93,19 @@ public class RedisCache implements CacheHandler {
 
     /**
      * 获取缓存服务类
+     *
+     * @param context 缓存上下文
      */
     private BaseRedisService getService(CacheContext context) {
-    	return clusterConfiguration.getRedisService(context.getClusterId());
+    	return getService(context.getClusterId());
+    }
+
+    /**
+     * 获取缓存服务类
+     *
+     * @param clusterId 集群ID
+     */
+    private BaseRedisService getService(String clusterId) {
+    	return clusterConfiguration.getRedisService(clusterId);
     }
 }

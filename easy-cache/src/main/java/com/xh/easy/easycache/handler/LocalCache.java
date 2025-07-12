@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @author yixinhai
  */
 @Component(value = "localCache")
-public class LocalCache implements CacheHandler {
+public class LocalCache extends CacheChain {
 
     private final Cache<String, String> l2LocalCache = CacheBuilder.newBuilder()
             .concurrencyLevel(8)
@@ -48,7 +48,7 @@ public class LocalCache implements CacheHandler {
     }
 
     @Override
-    public boolean ping() {
+    public boolean ping(String clusterId) {
         return true;
     }
 
@@ -56,5 +56,10 @@ public class LocalCache implements CacheHandler {
     public boolean invalid(CacheContext context) {
         l2LocalCache.invalidate(context.getKey());
         return true;
+    }
+
+    @Override
+    public boolean support(QueryContext context) {
+        return context.enableL2Cache();
     }
 }

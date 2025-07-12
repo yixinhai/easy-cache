@@ -50,8 +50,8 @@ public class CacheExecutor {
         });
     }
 
-    public boolean ping(CacheHandler cacheHandler) {
-        return cacheHandler.ping();
+    public boolean ping(String clusterId, CacheHandler cacheHandler) {
+        return cacheHandler.ping(clusterId);
     }
 
 //    @ZZMQRetry

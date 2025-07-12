@@ -2,7 +2,7 @@ package com.xh.easy.easycache.risk.event;
 
 import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.risk.CacheVisitor;
-import com.xh.easy.easycache.risk.FaultManager;
+import com.xh.easy.easycache.risk.healthy.FaultDynamicManager;
 
 /**
  * 缓存更新成功事件
@@ -20,7 +20,7 @@ public class UpdateSuccess implements Operation {
 
     public UpdateSuccess(String key) {
         this.key = key;
-        this.visitor = ClassHandler.getInstance().getBeanByType(FaultManager.class);
+        this.visitor = ClassHandler.getInstance().getBeanByType(FaultDynamicManager.class);
     }
 
     @Override

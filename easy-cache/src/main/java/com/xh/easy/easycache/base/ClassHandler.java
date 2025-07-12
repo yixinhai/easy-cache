@@ -28,10 +28,13 @@ public class ClassHandler extends ApplicationContextHandler {
         }
     }
 
-    public Object processMethod(Method method, Object bean, Object... args) throws InvocationTargetException, IllegalAccessException {
+    public Object processMethod(Method method, Object bean, Object... args)
+        throws InvocationTargetException, IllegalAccessException {
+
         if (null == method) {
-            throw new IllegalArgumentException("method is null");
+            throw new IllegalArgumentException("method cannot be null");
         }
+
         return method.invoke(bean, args);
     }
 
@@ -114,5 +117,9 @@ public class ClassHandler extends ApplicationContextHandler {
                     caller.getLineNumber());
         }
         return "Unknown";
+    }
+
+    public static String getClassName(Object o) {
+        return o.getClass().getName();
     }
 }

@@ -1,5 +1,6 @@
 package com.xh.easy.easycache.risk;
 
+import com.xh.easy.easycache.risk.event.ClusterDowntime;
 import com.xh.easy.easycache.risk.event.ClusterFault;
 import com.xh.easy.easycache.risk.event.UpdateFailed;
 import com.xh.easy.easycache.risk.event.UpdateSuccess;

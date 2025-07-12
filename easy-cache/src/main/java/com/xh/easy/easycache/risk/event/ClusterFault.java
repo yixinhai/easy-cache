@@ -2,7 +2,7 @@ package com.xh.easy.easycache.risk.event;
 
 import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.risk.CacheVisitor;
-import com.xh.easy.easycache.risk.FaultManager;
+import com.xh.easy.easycache.risk.healthy.FaultDynamicManager;
 
 /**
  * 集群异常事件
@@ -16,7 +16,7 @@ public class ClusterFault implements Operation {
 
     public ClusterFault(String clusterId) {
         this.clusterId = clusterId;
-        this.visitor = ClassHandler.getInstance().getBeanByType(FaultManager.class);
+        this.visitor = ClassHandler.getInstance().getBeanByType(FaultDynamicManager.class);
     }
 
     public String getClusterId() {
