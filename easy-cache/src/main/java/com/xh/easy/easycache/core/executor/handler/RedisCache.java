@@ -53,7 +53,7 @@ public class RedisCache extends CacheChain {
 
         // 缓存信息
         TimeInfo timeInfo = context.getTimeInfo();
-        Map<String, String> value = this.convertValue(context, o);
+        Map<String, String> value = this.convertValue(o);
 
         if (timeInfo.getExpireTime() > 0) {
             getService(context).hsetallnx(key, value, timeInfo.toSeconds());
@@ -85,11 +85,10 @@ public class RedisCache extends CacheChain {
     /**
      * 将目标方法返回结果转换成缓存信息
      *
-     * @param context 缓存上下文
      * @param o 目标方法返回结果
      * @return map格式缓存信息
      */
-    private Map<String, String> convertValue(QueryContext context, Object o) {
+    private Map<String, String> convertValue(Object o) {
         // 若开启缓存穿透且目标方法直接结果为null，缓存写入默认值
         String value = o == null ? NULL : SerializerManager.jsonSerializer().serialize2String(o);
 

@@ -18,14 +18,10 @@ public class UpdateContext extends JoinPointContext implements CacheContext {
 
     private String key;
 
-    private final String clusterId;
-
-
     public UpdateContext(ProceedingJoinPoint pjp) {
         super(pjp);
         this.cacheUpdate = getAnnotation(CacheUpdate.class);
         this.redisKeyParser = new RedisKeyParser(cacheUpdate.prefix(), cacheUpdate.keys(), getMethod(), getArgs());
-        this.clusterId = this.cacheUpdate.clusterId();
     }
 
     @Override
@@ -39,6 +35,6 @@ public class UpdateContext extends JoinPointContext implements CacheContext {
 
     @Override
     public String getClusterId() {
-        return this.clusterId;
+        return cacheUpdate.clusterId();
     }
 }
