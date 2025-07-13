@@ -10,7 +10,7 @@ import java.util.Objects;
 public class ResultHandler {
 
     public static <T extends JoinPointContext> Object defaultResult(T context) {
-        Class<?> resultType = context.getResultType();
+        Class<?> resultType = context.getResultClass();
         if (Objects.equals(resultType, Boolean.TYPE)) {
             return false;
         }

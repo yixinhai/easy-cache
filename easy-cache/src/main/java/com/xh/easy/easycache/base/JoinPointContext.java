@@ -6,6 +6,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 
 public class JoinPointContext {
@@ -17,7 +18,7 @@ public class JoinPointContext {
     private final MethodSignature methodSignature;
     private final Method method;
     private final Object[] args;
-    private final Class<?> resultType;
+    private final Class<?> resultClass;
 
     public JoinPointContext(ProceedingJoinPoint pjp) {
         this.classHandler = ClassHandler.getInstance();
@@ -27,7 +28,7 @@ public class JoinPointContext {
         this.methodSignature = (MethodSignature) pjp.getSignature();
         this.method = methodSignature.getMethod();
         this.args = pjp.getArgs();
-        this.resultType = methodSignature.getReturnType();
+        this.resultClass = methodSignature.getReturnType();
     }
 
     public ProceedingJoinPoint getPjp() {
@@ -54,8 +55,12 @@ public class JoinPointContext {
         return args;
     }
 
-    public Class<?> getResultType() {
-        return resultType;
+    public Class<?> getResultClass() {
+        return resultClass;
+    }
+
+    public Type getResultType() {
+        return this.method.getGenericReturnType();
     }
 
     @Override
@@ -66,7 +71,7 @@ public class JoinPointContext {
                 ", methodSignature=" + methodSignature +
                 ", method=" + method +
                 ", args=" + Arrays.toString(args) +
-                ", resultType=" + resultType +
+                ", resultType=" + resultClass +
                 '}';
     }
 

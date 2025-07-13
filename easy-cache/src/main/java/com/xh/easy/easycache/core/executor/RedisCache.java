@@ -9,6 +9,7 @@ import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.model.TimeInfo;
 import com.xh.easy.easycache.core.healthy.ClusterHealthInfo;
+import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -91,9 +92,10 @@ public class RedisCache extends CacheChain {
      * @return map格式缓存信息
      */
     private Map<String, String> convertValue(QueryContext context, Object o) {
-        Object cast = context.getResultType().cast(o);
-        String fieldValue = cast == null ? NULL : JSON.toJSONString(cast);
-        return new CacheInfo(fieldValue, UN_LOCK, this).parseCacheMap();
+        // 若开启缓存穿透且目标方法直接结果为null，缓存写入默认值
+        String value = o == null ? NULL : SerializerManager.jsonSerializer().serialize2String(o);
+
+        return new CacheInfo(value, UN_LOCK, this).parseCacheMap();
     }
 
     /**

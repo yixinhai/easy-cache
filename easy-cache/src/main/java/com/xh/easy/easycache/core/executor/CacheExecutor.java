@@ -1,6 +1,7 @@
 package com.xh.easy.easycache.core.executor;
 
 import com.xh.easy.easycache.entity.context.CacheContext;
+import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 
@@ -48,4 +49,11 @@ public interface CacheExecutor {
      * @return 是否失效成功
      */
     boolean invalid(CacheContext context);
+
+    /**
+     * 缓存锁定处理
+     *
+     * @param context 缓存上下文
+     */
+    void lockCacheInfo(UpdateContext context);
 }

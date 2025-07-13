@@ -22,7 +22,7 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
  * @author yixinhai
  */
 @Slf4j
-public class FaultTolerance implements CacheExecutor {
+public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExecutorWrapper<T> {
 
     private MultiLevelCacheExecutor cacheExecutor;
 
@@ -33,8 +33,9 @@ public class FaultTolerance implements CacheExecutor {
         this.lock = ClassHandler.getBeanByType(RedissonLockService.class);
     }
 
-    public void setCacheExecutor(MultiLevelCacheExecutor cacheExecutor) {
-        this.cacheExecutor = cacheExecutor;
+    @Override
+    public void setCacheExecutor(T t) {
+        this.cacheExecutor = t;
     }
 
     @Override
@@ -59,28 +60,35 @@ public class FaultTolerance implements CacheExecutor {
 
     @Override
     public Object hit(QueryContext context, CacheInfo info) {
-        Object o = info.getValue(context.getResultType());
+
+        // 若缓存内容为防缓存穿透默认值，返回null
+        if (info.isDefaultNullValue()) {
+            log.info("{} act=getValue msg=防止缓存穿透，返回null，key={}", LOG_STR, context.getKey());
+            return null;
+        }
+
+        Object o = cacheExecutor.hit(context, info);
 
         // 若是l2缓存获取的返回值，直接返回
         if (info.isL2Cache()) {
-            log.info("act=hit msg=请求命中l2缓存 result={}", JSON.toJSONString(o));
+            log.info("{} act=hit msg=请求命中l2缓存 result={}", LOG_STR, JSON.toJSONString(o));
             return o;
         }
 
         // 缓存信息和数据库一致，直接返回
         if (info.coherent()) {
-            log.info("act=hit msg=请求命中缓存 result={}", JSON.toJSONString(o));
+            log.info("{} act=hit msg=请求命中缓存 result={}", LOG_STR, JSON.toJSONString(o));
             return o;
         }
 
         // 在延迟删除时效内，尝试更新缓存
         if (info.lockTimeout()) {
             setValueAsync(context);
-            log.info("act=hit msg=请求命中缓存 result={}", JSON.toJSONString(o));
+            log.info("{} act=hit msg=请求命中缓存 result={}", LOG_STR, JSON.toJSONString(o));
             return o;
         }
 
-        // 在延迟删除实效外，同步更新缓存
+        // 在延迟删除实效外，同步更新缓存，重新执行目标方法并返回
         return setValue(context);
     }
 
@@ -91,8 +99,8 @@ public class FaultTolerance implements CacheExecutor {
             // 再次检查缓存，防止其他线程已经更新了缓存
             CacheInfo info = getValue(context);
             if (Objects.nonNull(info) && info.coherent()) {
-                log.info("act=miss msg=请求命中缓存 cacheInfo={}", info);
-                return info.isDefaultNullValue() ? null : info.getValue((context.getResultType()));
+                log.info("{} act=miss msg=请求命中缓存 cacheInfo={}", LOG_STR, info);
+                return info.isDefaultNullValue() ? null : info.getValue((context.getResultClass()));
             }
 
             // 未命中缓存，执行目标方法并记录缓存
@@ -108,7 +116,7 @@ public class FaultTolerance implements CacheExecutor {
             try {
                 return cacheExecutor.invalid(context);
             } catch (Exception e) {
-                log.error("act=invalid msg=失效缓存失败 clusterId={} key={}", context.getClusterId(), key);
+                log.error("{} act=invalid msg=失效缓存失败 clusterId={} key={}", LOG_STR, context.getClusterId(), key);
                 return false;
             }
         });
@@ -124,13 +132,9 @@ public class FaultTolerance implements CacheExecutor {
         return true;
     }
 
-    /**
-     * 缓存锁定处理
-     *
-     * @param context 缓存上下文
-     */
+    @Override
     public void lockCacheInfo(UpdateContext context) {
-        CacheBuilder.getAllHandler().forEach(handler -> cacheExecutor.invalid(context));
+        cacheExecutor.lockCacheInfo(context);
     }
 
     /**
@@ -164,5 +168,4 @@ public class FaultTolerance implements CacheExecutor {
     private Object setValue(QueryContext context) {
         return cacheExecutor.setValue(context, context.proceed());
     }
-
 }

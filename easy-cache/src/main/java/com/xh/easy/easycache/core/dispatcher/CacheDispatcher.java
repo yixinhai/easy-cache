@@ -2,12 +2,11 @@ package com.xh.easy.easycache.core.dispatcher;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.xh.easy.easycache.base.ResultHandler;
+import com.xh.easy.easycache.core.executor.*;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.exception.TargetMethodExecFailedException;
-import com.xh.easy.easycache.core.executor.CacheBuilder;
-import com.xh.easy.easycache.core.executor.FaultTolerance;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -25,12 +24,13 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 @Service
 public class CacheDispatcher {
 
-    private static final ThreadLocal<FaultTolerance> cacheExecutor = new TransmittableThreadLocal<>() {
-        @Override
-        protected FaultTolerance initialValue() {
-            return new FaultTolerance(CacheBuilder.getHandler());
-        }
-    };
+    private static final ThreadLocal<CacheExecutorWrapper<MultiLevelCacheExecutor>> cacheExecutor =
+        new TransmittableThreadLocal<>() {
+            @Override
+            protected FaultTolerance<MultiLevelCacheExecutor> initialValue() {
+                return new FaultTolerance<>(CacheBuilder.getHandler());
+            }
+        };
 
 
     /**
