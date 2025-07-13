@@ -13,4 +13,6 @@ public interface BaseRedisService {
     void hsetallnx(String key, Map<String, String> value, long seconds);
 
     void hset(String key, String hashFieldLockInfo, String unLock);
+
+    boolean ping();
 }

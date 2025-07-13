@@ -24,12 +24,10 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 @Slf4j
 public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExecutorWrapper<T> {
 
-    private MultiLevelCacheExecutor cacheExecutor;
-
     private final RedissonLockService lock;
 
-    public FaultTolerance(MultiLevelCacheExecutor cacheExecutor) {
-        this.cacheExecutor = cacheExecutor;
+    public FaultTolerance(T t) {
+        this.cacheExecutor = t;
         this.lock = ClassHandler.getBeanByType(RedissonLockService.class);
     }
 

@@ -32,4 +32,9 @@ public class RedisService implements BaseRedisService {
     public void hset(String key, String hashFieldLockInfo, String unLock) {
 
     }
+
+    @Override
+    public boolean ping() {
+        return false;
+    }
 }

@@ -23,10 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author yixinhai
  */
 @Slf4j
-public class FaultDynamicManager extends TimeWindowCounter implements CacheVisitor {
+public class FaultDynamicManager implements CacheVisitor {
 
     /**
-     *
+     * 故障统计时间窗口
      */
     private static final long FAULT_STATISTICS_MS = 60000L;
 
@@ -36,12 +36,12 @@ public class FaultDynamicManager extends TimeWindowCounter implements CacheVisit
     private static final int FAULT_TOLERABLE_QUANTITY = 100;
 
     /**
-     *
+     * 集群健康度检查时间间隔
      */
     private static final long CLUSTER_HEALTH_LEVEL_CHECK_MS = 1000L;
 
     /**
-     *
+     * 集群健康度探活时间间隔
      */
     private static final long CLUSTER_HEALTH_LEVEL_EXPLORE_MS = 100L;
 
@@ -57,6 +57,12 @@ public class FaultDynamicManager extends TimeWindowCounter implements CacheVisit
      */
     private final ScheduledExecutorService healthyChecker = Executors.newSingleThreadScheduledExecutor();
 
+    /**
+     * 故障统计
+     */
+    private static final TimeWindowCounter faultCounter = new TimeWindowCounter(FAULT_STATISTICS_MS,
+        FAULT_TOLERABLE_QUANTITY);
+
     private static final FaultDynamicManager INSTANCE = new FaultDynamicManager();
 
     private final ClusterHealthInfo clusterHealthInfo;
@@ -67,7 +73,6 @@ public class FaultDynamicManager extends TimeWindowCounter implements CacheVisit
 
 
     private FaultDynamicManager() {
-        super(FAULT_STATISTICS_MS, FAULT_TOLERABLE_QUANTITY);
         this.clusterHealthInfo = ClusterHealthInfo.getInstance();
         this.redisCache = RedisCache.getInstance();
         this.clusterConfiguration = ClassHandler.getBeanByType(ClusterConfiguration.class);
@@ -101,7 +106,7 @@ public class FaultDynamicManager extends TimeWindowCounter implements CacheVisit
 
     @Override
     public void visit(ClusterFault element) {
-        this.increment(element.getClusterId());
+        faultCounter.increment(element.getClusterId());
     }
 
     /**
@@ -110,7 +115,7 @@ public class FaultDynamicManager extends TimeWindowCounter implements CacheVisit
     private void checkClusterHealthLevel() {
         for (String clusterId : clusterConfiguration.getClusterIds()) {
             if (ClusterHealthInfo.isClusterAvailable(null, clusterId)
-                && getCount(clusterId) >= FAULT_TOLERABLE_QUANTITY) {
+                && faultCounter.getCount(clusterId) >= FAULT_TOLERABLE_QUANTITY) {
 
                 // 集群不可用
                 clusterHealthInfo.clusterNotAvailable(clusterId);

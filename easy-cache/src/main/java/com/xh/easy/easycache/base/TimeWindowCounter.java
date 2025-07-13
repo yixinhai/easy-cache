@@ -6,16 +6,50 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TimeWindowCounter {
 
+    /**
+     * 默认队列最大容量
+     */
     private static final int DEFAULT_MAX_QUEUE_SIZE = 1000;
+
+    /**
+     * 窗口大小
+     * 每隔 windowSizeMs 毫秒执行一次事件队列清理
+     */
     private final long windowSizeMs;
+
+    /**
+     * 队列最大容量
+     */
     private final int maxQueueSize;
+
+    /**
+     * 事件队列
+     */
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Event>> eventQueues;
+
+    /**
+     * 队列清理定时任务
+     */
     private final ScheduledExecutorService cleaner;
 
+    /**
+     * 构造函数
+     * 
+     * @param windowSizeMs
+     *     窗口大小
+     */
     public TimeWindowCounter(long windowSizeMs) {
         this(windowSizeMs, DEFAULT_MAX_QUEUE_SIZE);
     }
 
+    /**
+     * 构造函数
+     * 
+     * @param windowSizeMs
+     *     窗口大小
+     * @param maxQueueSize
+     *     队列最大容量
+     */
     public TimeWindowCounter(long windowSizeMs, int maxQueueSize) {
         this.windowSizeMs = windowSizeMs;
         this.eventQueues = new ConcurrentHashMap<>();

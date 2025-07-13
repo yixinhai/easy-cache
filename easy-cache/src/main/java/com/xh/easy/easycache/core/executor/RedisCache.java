@@ -67,7 +67,7 @@ public class RedisCache extends CacheChain {
 
     @Override
     public boolean ping(String clusterId) {
-        return true;
+        return getService(clusterId).ping();
     }
 
     @Override
