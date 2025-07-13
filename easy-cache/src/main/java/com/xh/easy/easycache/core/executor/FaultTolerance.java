@@ -100,7 +100,7 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
             CacheInfo info = getValue(context);
             if (Objects.nonNull(info) && info.coherent()) {
                 log.info("{} act=miss msg=请求命中缓存 cacheInfo={}", LOG_STR, info);
-                return info.isDefaultNullValue() ? null : info.getValue((context.getResultClass()));
+                return info.getValue(context.getResultType());
             }
 
             // 未命中缓存，执行目标方法并记录缓存

@@ -2,8 +2,10 @@ package com.xh.easy.easycache.entity.model;
 
 import com.alibaba.fastjson.JSON;
 import com.xh.easy.easycache.core.executor.MultiLevelCacheExecutor;
+import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -188,14 +190,16 @@ public class CacheInfo {
     /**
      * 获取缓存内容
      *
-     * @param resultType 缓存内容目标类型
+     * @param type 缓存内容目标类型
      */
-    public <R> R getValue(Class<R> resultType) {
+    public Object getValue(Type type) {
+
         // 开启防止缓存穿透时，value可能为字符串"null"
-        if (NULL.equals(value)) {
+        if (isDefaultNullValue()) {
             return null;
         }
-        return JSON.parseObject(value, resultType);
+
+        return SerializerManager.jsonSerializer().deserialize(value, type);
     }
 
     /**

@@ -3,7 +3,6 @@ package com.xh.easy.easycache.core.executor;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
-import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,7 +21,7 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
             return null;
         }
 
-        return SerializerManager.jsonSerializer().deserialize(value, context.getResultType());
+        return info.getValue(context.getResultType());
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.xh.easy.easycache.core.executor;
 
-import com.alibaba.fastjson.JSON;
 import com.xh.easy.easycache.config.ClusterConfiguration;
 import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.core.BaseRedisService;
