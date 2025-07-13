@@ -1,13 +1,13 @@
-package com.xh.easy.easycache.core.healthy;
+package com.xh.easy.easycache.core.monitor.healthy;
 
 import com.xh.easy.easycache.config.ClusterConfiguration;
 import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.base.TimeWindowCounter;
-import com.xh.easy.easycache.core.executor.MultiLevelCacheExecutor;
-import com.xh.easy.easycache.core.executor.RedisCache;
-import com.xh.easy.easycache.core.healthy.event.ClusterFault;
-import com.xh.easy.easycache.core.healthy.event.UpdateFailed;
-import com.xh.easy.easycache.core.healthy.event.UpdateSuccess;
+import com.xh.easy.easycache.core.executor.CacheHealthyChecker;
+import com.xh.easy.easycache.core.executor.handler.RedisCache;
+import com.xh.easy.easycache.core.monitor.healthy.event.ClusterFault;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateFailed;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateSuccess;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
@@ -69,7 +69,7 @@ public class FaultDynamicManager implements CacheVisitor {
 
     private final ClusterConfiguration clusterConfiguration;
 
-    private final MultiLevelCacheExecutor redisCache;
+    private final CacheHealthyChecker redisCache;
 
 
     private FaultDynamicManager() {

@@ -1,6 +1,6 @@
 package com.xh.easy.easycache.config;
 
-import com.xh.easy.easycache.core.BaseRedisService;
+import com.xh.easy.easycache.core.executor.handler.BaseRedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 

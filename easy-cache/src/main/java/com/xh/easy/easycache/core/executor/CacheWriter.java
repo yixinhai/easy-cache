@@ -1,25 +1,16 @@
 package com.xh.easy.easycache.core.executor;
 
 import com.xh.easy.easycache.entity.context.CacheContext;
+import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
-import com.xh.easy.easycache.entity.context.QueryContext;
 
 /**
- * 缓存执行器
+ * 更新缓存
  *
  * @author yixinhai
  */
-public interface CacheExecutor {
-
-    /**
-     * 获取缓存数据
-     *
-     * @param context
-     *     缓存执行上下文
-     * @return 缓存数据
-     */
-    CacheInfo getValue(QueryContext context);
+public interface CacheWriter {
 
     /**
      * 命中缓存

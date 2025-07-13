@@ -1,8 +1,8 @@
-package com.xh.easy.easycache.core.healthy;
+package com.xh.easy.easycache.core.monitor.healthy;
 
-import com.xh.easy.easycache.core.healthy.event.ClusterFault;
-import com.xh.easy.easycache.core.healthy.event.UpdateFailed;
-import com.xh.easy.easycache.core.healthy.event.UpdateSuccess;
+import com.xh.easy.easycache.core.monitor.healthy.event.ClusterFault;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateFailed;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateSuccess;
 
 /**
  * 缓存操作观察者

@@ -1,7 +1,6 @@
 package com.xh.easy.easycache.entity.model;
 
-import com.alibaba.fastjson.JSON;
-import com.xh.easy.easycache.core.executor.MultiLevelCacheExecutor;
+import com.xh.easy.easycache.core.executor.executor.MultiLevelCacheExecutor;
 import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import org.springframework.util.StringUtils;
 
@@ -222,5 +221,12 @@ public class CacheInfo {
     public boolean lockTimeout() {
         Long unLockTime = getUnlockTime();
         return Objects.nonNull(unLockTime) && System.currentTimeMillis() <= unLockTime;
+    }
+
+    /**
+     * 是否命中缓存
+     */
+    public boolean hit() {
+        return value != null && !value.isEmpty();
     }
 }

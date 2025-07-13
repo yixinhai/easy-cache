@@ -1,4 +1,4 @@
-package com.xh.easy.easycache.core.healthy;
+package com.xh.easy.easycache.core.monitor.healthy;
 
 import com.xh.easy.easycache.config.ClusterConfiguration;
 import com.xh.easy.easycache.base.ClassHandler;

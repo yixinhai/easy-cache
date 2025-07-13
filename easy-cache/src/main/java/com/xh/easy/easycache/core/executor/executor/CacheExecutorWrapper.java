@@ -1,4 +1,4 @@
-package com.xh.easy.easycache.core.executor;
+package com.xh.easy.easycache.core.executor.executor;
 
 /**
  * 缓存执行装饰器

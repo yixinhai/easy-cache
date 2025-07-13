@@ -1,7 +1,7 @@
 package com.xh.easy.easycache.entity.context;
 
 import com.xh.easy.easycache.aop.CacheUpdate;
-import com.xh.easy.easycache.core.RedisKeyParser;
+import com.xh.easy.easycache.utils.RedisKeyParser;
 import com.xh.easy.easycache.base.JoinPointContext;
 import org.aspectj.lang.ProceedingJoinPoint;
 

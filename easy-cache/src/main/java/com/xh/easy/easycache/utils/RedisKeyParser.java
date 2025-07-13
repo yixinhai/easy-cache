@@ -1,4 +1,4 @@
-package com.xh.easy.easycache.core;
+package com.xh.easy.easycache.utils;
 
 import com.xh.easy.easycache.base.SpelParser;
 

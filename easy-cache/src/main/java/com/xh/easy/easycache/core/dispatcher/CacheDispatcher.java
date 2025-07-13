@@ -2,14 +2,16 @@ package com.xh.easy.easycache.core.dispatcher;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.xh.easy.easycache.base.ResultHandler;
-import com.xh.easy.easycache.core.executor.*;
+import com.xh.easy.easycache.core.executor.executor.CacheExecutorWrapper;
+import com.xh.easy.easycache.core.executor.executor.FaultTolerance;
+import com.xh.easy.easycache.core.executor.executor.MultiLevelCacheExecutor;
+import com.xh.easy.easycache.core.executor.handler.CacheBuilder;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.exception.TargetMethodExecFailedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
@@ -67,8 +69,7 @@ public class CacheDispatcher {
         cacheExecutor.get().setCacheExecutor(info.getCacheExecutor());
 
         // 处理查询结果
-        return StringUtils.hasText(info.getValue()) ? cacheExecutor.get().hit(context, info)
-            : cacheExecutor.get().miss(context);
+        return info.hit() ? cacheExecutor.get().hit(context, info) : cacheExecutor.get().miss(context);
     }
 
     /**

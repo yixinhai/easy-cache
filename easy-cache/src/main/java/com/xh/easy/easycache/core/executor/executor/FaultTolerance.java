@@ -1,4 +1,4 @@
-package com.xh.easy.easycache.core.executor;
+package com.xh.easy.easycache.core.executor.executor;
 
 import com.alibaba.fastjson.JSON;
 import com.xh.easy.easycache.utils.async.FunctionAsyncTask;
@@ -8,8 +8,8 @@ import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.utils.RedissonLockService;
-import com.xh.easy.easycache.core.healthy.event.UpdateFailed;
-import com.xh.easy.easycache.core.healthy.event.UpdateSuccess;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateFailed;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateSuccess;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -133,6 +133,11 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
     @Override
     public void lockCacheInfo(UpdateContext context) {
         cacheExecutor.lockCacheInfo(context);
+    }
+
+    @Override
+    public boolean ping(String clusterId) {
+        return cacheExecutor.ping(clusterId);
     }
 
     /**

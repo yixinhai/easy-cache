@@ -1,5 +1,6 @@
-package com.xh.easy.easycache.core.executor;
+package com.xh.easy.easycache.core.executor.executor;
 
+import com.xh.easy.easycache.core.executor.handler.CacheBuilder;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
@@ -47,14 +48,6 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
      * @return 目标方法返回值
      */
     public abstract Object setValue(QueryContext context, Object o);
-
-    /**
-     * 缓存是否可用
-     *
-     * @param clusterId 集群ID
-     * @return 缓存是否可用
-     */
-    public abstract boolean ping(String clusterId);
 
     /**
      * 获取缓存内容

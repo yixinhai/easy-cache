@@ -1,7 +1,7 @@
-package com.xh.easy.easycache.core.healthy.event;
+package com.xh.easy.easycache.core.monitor.healthy.event;
 
-import com.xh.easy.easycache.core.healthy.CacheVisitor;
-import com.xh.easy.easycache.core.healthy.FaultDynamicManager;
+import com.xh.easy.easycache.core.monitor.healthy.CacheVisitor;
+import com.xh.easy.easycache.core.monitor.healthy.FaultDynamicManager;
 
 /**
  * 缓存更新异常事件
