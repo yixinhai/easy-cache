@@ -27,7 +27,7 @@ public abstract class CacheChain extends MultiLevelCacheExecutor {
      *
      * @param chain 缓存执行器
      */
-    protected void setNext(CacheChain chain) {
+    protected final void setNext(CacheChain chain) {
         this.next = chain;
     }
 
@@ -50,7 +50,7 @@ public abstract class CacheChain extends MultiLevelCacheExecutor {
                     ClassHandler.getClassName(this), context.getKey(), e);
 
                 // 更新故障信息
-                new ClusterFault(context.getClusterId()).accept();
+                new ClusterFault(context.getClusterId(), this).accept();
 
                 return nextLoadValue(context);
             }

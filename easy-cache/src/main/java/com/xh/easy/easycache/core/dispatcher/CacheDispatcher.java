@@ -26,7 +26,7 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 @Service
 public class CacheDispatcher {
 
-    private static final ThreadLocal<CacheExecutorWrapper<MultiLevelCacheExecutor>> cacheExecutor =
+    private final ThreadLocal<CacheExecutorWrapper<MultiLevelCacheExecutor>> cacheExecutor =
         new TransmittableThreadLocal<>() {
             @Override
             protected FaultTolerance<MultiLevelCacheExecutor> initialValue() {
@@ -86,13 +86,13 @@ public class CacheDispatcher {
 
         try {
             return context.proceed();
-        } catch (TargetMethodExecFailedException e) {
-            log.error("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
+        } catch (Throwable e) {
+            log.warn("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
+            throw new TargetMethodExecFailedException("msg=目标方法执行异常", e);
         } finally {
             // 上报缓存更新
             cacheExecutor.get().lockCacheInfo(context);
         }
 
-        return ResultHandler.defaultResult(context);
     }
 }

@@ -1,6 +1,5 @@
 package com.xh.easy.easycache.core.executor;
 
-import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
@@ -31,15 +30,6 @@ public interface CacheWriter {
      * @return 缓存数据
      */
     Object miss(QueryContext context);
-
-    /**
-     * 失效缓存
-     *
-     * @param context
-     *     缓存执行上下文
-     * @return 是否失效成功
-     */
-    boolean invalid(CacheContext context);
 
     /**
      * 缓存锁定处理

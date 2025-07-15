@@ -15,7 +15,7 @@ public class CacheBuilder {
 
     private static final CacheChain redisCache = RedisCache.getInstance();
 
-    private static final List<CacheChain> cacheHandlers = List.of(localCache, redisCache);
+    private static final List<CacheChain> cacheHandlers = List.of(redisCache, localCache);
 
     static {
 

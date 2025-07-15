@@ -1,5 +1,6 @@
 package com.xh.easy.easycache.core.monitor.healthy.event;
 
+import com.xh.easy.easycache.core.executor.executor.CacheExecutor;
 import com.xh.easy.easycache.core.monitor.healthy.CacheVisitor;
 import com.xh.easy.easycache.core.monitor.healthy.FaultDynamicManager;
 
@@ -8,7 +9,7 @@ import com.xh.easy.easycache.core.monitor.healthy.FaultDynamicManager;
  *
  * @author yixinhai
  */
-public class UpdateFailed implements Operation {
+public class UpdateFailed extends CacheOperation {
 
     private final String key;
     private final CacheVisitor visitor;
@@ -17,7 +18,8 @@ public class UpdateFailed implements Operation {
         return key;
     }
 
-    public UpdateFailed(String key) {
+    public UpdateFailed(String key, CacheExecutor executor) {
+        super(executor);
         this.key = key;
         this.visitor = FaultDynamicManager.getInstance();
     }

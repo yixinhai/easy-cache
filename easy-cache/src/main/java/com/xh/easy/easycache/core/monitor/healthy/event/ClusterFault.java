@@ -1,5 +1,6 @@
 package com.xh.easy.easycache.core.monitor.healthy.event;
 
+import com.xh.easy.easycache.core.executor.executor.CacheExecutor;
 import com.xh.easy.easycache.core.monitor.healthy.CacheVisitor;
 import com.xh.easy.easycache.core.monitor.healthy.FaultDynamicManager;
 
@@ -8,12 +9,13 @@ import com.xh.easy.easycache.core.monitor.healthy.FaultDynamicManager;
  *
  * @author yixinhai
  */
-public class ClusterFault implements Operation {
+public class ClusterFault extends CacheOperation {
 
     private final String clusterId;
     private final CacheVisitor visitor;
 
-    public ClusterFault(String clusterId) {
+    public ClusterFault(String clusterId, CacheExecutor cacheExecutor) {
+        super(cacheExecutor);
         this.clusterId = clusterId;
         this.visitor = FaultDynamicManager.getInstance();
     }

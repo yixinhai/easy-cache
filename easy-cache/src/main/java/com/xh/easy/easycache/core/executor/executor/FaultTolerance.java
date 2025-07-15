@@ -3,13 +3,10 @@ package com.xh.easy.easycache.core.executor.executor;
 import com.alibaba.fastjson.JSON;
 import com.xh.easy.easycache.utils.async.FunctionAsyncTask;
 import com.xh.easy.easycache.base.ClassHandler;
-import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.utils.RedissonLockService;
-import com.xh.easy.easycache.core.monitor.healthy.event.UpdateFailed;
-import com.xh.easy.easycache.core.monitor.healthy.event.UpdateSuccess;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -104,30 +101,6 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
             // 未命中缓存，执行目标方法并记录缓存
             return cacheExecutor.miss(context);
         });
-    }
-
-    @Override
-    public boolean invalid(CacheContext context) {
-        String key = context.getKey();
-
-        Boolean updateResult = lock.executeTryLock(key, () -> {
-            try {
-                return cacheExecutor.invalid(context);
-            } catch (Exception e) {
-                log.error("{} act=invalid msg=失效缓存失败 clusterId={} key={}", LOG_STR, context.getClusterId(), key);
-                return false;
-            }
-        });
-
-        if (updateResult == null || !updateResult) {
-            // TODO 标记重试
-
-            new UpdateFailed(key).accept();
-            return false;
-        }
-
-        new UpdateSuccess(key).accept();
-        return true;
     }
 
     @Override

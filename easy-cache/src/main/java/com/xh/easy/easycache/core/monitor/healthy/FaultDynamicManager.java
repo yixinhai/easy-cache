@@ -96,16 +96,28 @@ public class FaultDynamicManager implements CacheVisitor {
 
     @Override
     public void visit(UpdateFailed element) {
+        if (!element.sendByCluster()) {
+            return;
+        }
+
         clusterHealthInfo.keyNotAvailable(element.getKey());
     }
 
     @Override
     public void visit(UpdateSuccess element) {
+        if (!element.sendByCluster()) {
+            return;
+        }
+
         clusterHealthInfo.keyAvailable(element.getKey());
     }
 
     @Override
     public void visit(ClusterFault element) {
+        if (element.sendByCluster()) {
+            return;
+        }
+
         faultCounter.increment(element.getClusterId());
     }
 
