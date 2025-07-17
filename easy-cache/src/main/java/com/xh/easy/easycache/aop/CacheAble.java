@@ -3,6 +3,8 @@ package com.xh.easy.easycache.aop;
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.xh.easy.easycache.entity.constant.CacheConfigConstant.*;
+
 /**
  * 缓存注解
  * @author yixinhai
@@ -33,7 +35,7 @@ public @interface CacheAble {
      * 默认单位：秒
      * 默认缓存时常：10分钟
      */
-    long expireTime() default 600L;
+    long expireTime() default DEFAULT_EXPIRE_TIME;
 
     /**
      * 缓存时间单位
@@ -57,4 +59,11 @@ public @interface CacheAble {
      * 是否开启防止缓存穿透
      */
     boolean preventCachePenetration() default false;
+
+    /**
+     * 弹性缓存过期时间【当前时间窗口内缓存数据库不一致】
+     * 默认单位：毫秒
+     * 默认缓存时间弹性：1500毫秒
+     */
+    long elasticExpirationTime() default DEFAULT_ELASTIC_CACHE_EXPIRATION_TIME;
 }

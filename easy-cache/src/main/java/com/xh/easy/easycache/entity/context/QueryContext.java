@@ -86,4 +86,11 @@ public class QueryContext extends JoinPointContext implements CacheContext {
     public int getL2CacheProportion() {
         return redisCache.l2CacheProportion();
     }
+
+    /**
+     * 弹性缓存过期时间
+     */
+    public long getElasticExpirationTime() {
+       return Math.max(0L, redisCache.elasticExpirationTime());
+    }
 }

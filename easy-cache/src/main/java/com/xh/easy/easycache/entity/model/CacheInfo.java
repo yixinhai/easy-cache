@@ -218,9 +218,17 @@ public class CacheInfo {
     /**
      * 缓存内容是否已过期
      */
-    public boolean lockTimeout() {
+    public boolean lockTimeout(final long elasticExpirationTime) {
         Long unLockTime = getUnlockTime();
-        return Objects.nonNull(unLockTime) && System.currentTimeMillis() <= unLockTime;
+
+        if (unLockTime == null) {
+            return false;
+        }
+
+        long currentTimeMillis = System.currentTimeMillis();
+        long startTime = unLockTime - elasticExpirationTime;
+
+        return currentTimeMillis <= unLockTime && currentTimeMillis > startTime;
     }
 
     /**

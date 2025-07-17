@@ -2,6 +2,7 @@ package com.xh.easy.easycache.core.executor.executor;
 
 import com.xh.easy.easycache.core.executor.handler.CacheBuilder;
 import com.xh.easy.easycache.core.monitor.healthy.event.UpdateFailed;
+import com.xh.easy.easycache.core.monitor.healthy.event.UpdateSuccess;
 import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
@@ -20,13 +21,7 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
 
     @Override
     public Object hit(QueryContext context, CacheInfo info) {
-        String value = info.getValue();
-
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-
-        return info.getValue(context.getResultType());
+        return info.hit() ? info.getValue(context.getResultType()) : null;
     }
 
     @Override
@@ -46,6 +41,8 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
                 if (!invalid(context)) {
                     updateFailed(context, handler);
                 }
+
+                updateSuccess(context, handler);
             } catch (Exception e) {
                 updateFailed(context, handler);
             }
@@ -65,6 +62,21 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
             LOG_STR, context.getClusterId(), context.getKey(), handler.getClass().getName());
 
         new UpdateFailed(context.getKey(), handler).accept();
+    }
+
+    /**
+     * 失效缓存成功
+     *
+     * @param context
+     *     缓存执行上下文
+     * @param handler
+     *     失效缓存执行器
+     */
+    private void updateSuccess(UpdateContext context, CacheExecutor handler) {
+        log.warn("{} act=lockCacheInfo msg=失效缓存成功，当前key升级 clusterId={} key={} handler={}",
+            LOG_STR, context.getClusterId(), context.getKey(), handler.getClass().getName());
+
+        new UpdateSuccess(context.getKey(), handler).accept();
     }
 
     /**

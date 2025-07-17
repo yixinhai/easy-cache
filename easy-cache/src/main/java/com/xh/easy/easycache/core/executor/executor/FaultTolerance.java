@@ -77,7 +77,7 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
         }
 
         // 在延迟删除时效内，尝试更新缓存
-        if (info.lockTimeout()) {
+        if (info.lockTimeout(context.getElasticExpirationTime())) {
             setValueAsync(context);
             log.info("{} act=hit msg=请求命中缓存 result={}", LOG_STR, JSON.toJSONString(o));
             return o;
@@ -142,6 +142,15 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
      * @param context 缓存上下文
      */
     private Object setValue(QueryContext context) {
-        return cacheExecutor.setValue(context, context.proceed());
+        return lock.executeTryLock(context.getKey(), () -> {
+
+            // 获取缓存，若命中则直接返回
+            CacheInfo info = cacheExecutor.getValue(context);
+            if (info != null && info.hit() && info.coherent()) {
+                return cacheExecutor.hit(context, info);
+            }
+
+            return cacheExecutor.setValue(context, context.proceed());
+        });
     }
 }

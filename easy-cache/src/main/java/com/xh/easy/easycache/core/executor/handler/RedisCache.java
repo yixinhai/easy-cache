@@ -71,9 +71,12 @@ public class RedisCache extends CacheChain {
 
     @Override
     public boolean invalid(CacheContext context) {
+
         CacheInfo info = new CacheInfo();
         info.setLockInfo(LOCKED);
-        info.setUnlockTime(String.valueOf(System.currentTimeMillis() + getUnlockTime()));
+        info.setUnlockTime(
+            String.valueOf(System.currentTimeMillis() + ((QueryContext)context).getElasticExpirationTime()));
+
         return "OK".equals(getService(context).hsetall(context.getKey(), info.parseCacheMap()));
     }
 
@@ -111,9 +114,5 @@ public class RedisCache extends CacheChain {
      */
     private BaseRedisService getService(String clusterId) {
     	return clusterConfiguration.getRedisService(clusterId);
-    }
-
-    private long getUnlockTime() {
-        return 1500L;
     }
 }

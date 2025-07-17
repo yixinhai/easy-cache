@@ -11,7 +11,15 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CacheService {
 
-    @CacheAble(clusterId = "cluster1", prefix = "getInfo", keys = {"#infoId"}, timeUnit = TimeUnit.MILLISECONDS)
+    @CacheAble(clusterId = "cluster1",
+        prefix = "getInfo",
+        keys = {"#infoId"},
+        expireTime = 5000L,
+        timeUnit = TimeUnit.MILLISECONDS,
+        l2Cache = true,
+        l2CacheProportion = 4,
+        preventCachePenetration = true,
+        elasticExpirationTime = 1000L)
     public String getInfo(Long infoId) {
         return "info";
     }
