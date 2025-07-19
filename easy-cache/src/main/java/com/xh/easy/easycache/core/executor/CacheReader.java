@@ -18,4 +18,13 @@ public interface CacheReader {
      * @return 缓存数据
      */
     CacheInfo getValue(QueryContext context);
+
+    /**
+     * 等待获取缓存数据
+     *
+     * @param context
+     *     缓存执行上下文
+     * @return 缓存数据
+     */
+    CacheInfo wait(QueryContext context);
 }

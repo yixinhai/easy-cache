@@ -1,7 +1,9 @@
 package com.xh.easy.easycache.core.executor.handler;
 
-import com.xh.easy.easycache.config.ClusterConfiguration;
 import com.xh.easy.easycache.base.ClassHandler;
+import com.xh.easy.easycache.core.lua.RedisCommandsAdapter;
+import com.xh.easy.easycache.core.lua.RedisCommandsManager;
+import com.xh.easy.easycache.core.monitor.healthy.event.ClusterFault;
 import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
@@ -10,9 +12,8 @@ import com.xh.easy.easycache.core.monitor.healthy.ClusterHealthInfo;
 import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-
-import static com.xh.easy.easycache.entity.model.CacheInfo.*;
+import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
+import static com.xh.easy.easycache.entity.model.CacheResult.NULL;
 
 /**
  * 集群缓存处理器
@@ -24,10 +25,10 @@ public class RedisCache extends CacheChain {
 
     private static final RedisCache INSTANCE = new RedisCache();
 
-    private final ClusterConfiguration clusterConfiguration;
+    private final RedisCommandsManager redisCommandsManager;
 
     private RedisCache() {
-        this.clusterConfiguration = ClassHandler.getBeanByType(ClusterConfiguration.class);
+        this.redisCommandsManager = ClassHandler.getBeanByType(RedisCommandsManager.class);
     }
 
     public static RedisCache getInstance() {
@@ -36,29 +37,33 @@ public class RedisCache extends CacheChain {
 
     @Override
     public CacheInfo getValue(QueryContext context) {
-        return CacheInfo.initByCacheMap(getService(context).hgetall(context.getKey()), this);
+        long currentTimeMillis = System.currentTimeMillis();
+        long unlockTime = currentTimeMillis + 1000L;
+
+        return new CacheInfo(
+            getCommands(context).getAndLock(context.getKey(), unlockTime, context.getUuid(), currentTimeMillis), this);
     }
 
     @Override
     public Object setValue(QueryContext context, Object o) {
 
         String key = context.getKey();
+        String uuid = context.getUuid();
 
-        // 若执行目标方法返回结果为null且未开启防缓存穿透，则只更新缓存的lockInfo
-        if (o == null && !context.cachePenetration()) {
-            log.info("act=setValue msg=未开启防缓存穿透且目标方法返回值为空，只更新lockInfo key={}", key);
-            getService(context).hset(context.getKey(), HASH_FIELD_LOCK_INFO, UN_LOCK);
-            return null;
-        }
+        try {
+            // 缓存信息
+            TimeInfo timeInfo = context.getTimeInfo();
+            String value = this.convertValue(o);
 
-        // 缓存信息
-        TimeInfo timeInfo = context.getTimeInfo();
-        Map<String, String> value = this.convertValue(o);
+            if (timeInfo.getExpireTime() > 0) {
+                getCommands(context).set(key, value, uuid, timeInfo.toSeconds());
+            } else {
+                getCommands(context).set(key, value, uuid);
+            }
 
-        if (timeInfo.getExpireTime() > 0) {
-            getService(context).hsetallnx(key, value, timeInfo.toSeconds());
-        } else {
-            getService(context).hsetall(key, value);
+        } catch (Exception e) {
+            log.warn("{} act=setValue msg=Redis缓存写入失败 key={}", LOG_STR, key, e);
+            new ClusterFault(context.getClusterId(), this);
         }
 
         return o;
@@ -66,18 +71,13 @@ public class RedisCache extends CacheChain {
 
     @Override
     public boolean ping(String clusterId) {
-        return getService(clusterId).ping();
+        return getCommands(clusterId).ping();
     }
 
     @Override
     public boolean invalid(CacheContext context) {
-
-        CacheInfo info = new CacheInfo();
-        info.setLockInfo(LOCKED);
-        info.setUnlockTime(
-            String.valueOf(System.currentTimeMillis() + ((QueryContext)context).getElasticExpirationTime()));
-
-        return "OK".equals(getService(context).hsetall(context.getKey(), info.parseCacheMap()));
+        return getCommands(context).invalid(context.getKey(), ((QueryContext)context).getElasticExpirationTime())
+            .invalidSuccess();
     }
 
     @Override
@@ -91,28 +91,25 @@ public class RedisCache extends CacheChain {
      * @param o 目标方法返回结果
      * @return map格式缓存信息
      */
-    private Map<String, String> convertValue(Object o) {
-        // 若开启缓存穿透且目标方法直接结果为null，缓存写入默认值
-        String value = o == null ? NULL : SerializerManager.jsonSerializer().serialize2String(o);
-
-        return new CacheInfo(value, UN_LOCK, this).parseCacheMap();
+    private String convertValue(Object o) {
+        return o == null ? null : SerializerManager.jsonSerializer().serialize2String(o);
     }
 
     /**
-     * 获取缓存服务类
+     * 获取Redis命令处理器
      *
      * @param context 缓存上下文
      */
-    private BaseRedisService getService(CacheContext context) {
-    	return getService(context.getClusterId());
+    private RedisCommandsAdapter getCommands(CacheContext context) {
+    	return getCommands(context.getClusterId());
     }
 
     /**
-     * 获取缓存服务类
+     * 获取Redis命令处理器
      *
      * @param clusterId 集群ID
      */
-    private BaseRedisService getService(String clusterId) {
-    	return clusterConfiguration.getRedisService(clusterId);
+    private RedisCommandsAdapter getCommands(String clusterId) {
+    	return redisCommandsManager.getRedisCommands(clusterId);
     }
 }

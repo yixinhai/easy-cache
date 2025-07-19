@@ -91,6 +91,12 @@
             <version>5.8.22</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>6.2.5.RELEASE</version>
+        </dependency>
+
 
     </dependencies>
 

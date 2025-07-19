@@ -54,7 +54,7 @@ public class ClassHandler extends ApplicationContextHandler {
         return null == field ? null : field.getType();
     }
 
-    public List<Field> getDeclaredFields(Class<?> clazz) {
+    public static List<Field> getDeclaredFields(Class<?> clazz) {
         try {
             return Arrays.asList(clazz.getDeclaredFields());
         } catch (Exception e) {

@@ -1,15 +1,11 @@
 package com.xh.easy.easycache.core.executor.executor;
 
-import com.alibaba.fastjson.JSON;
-import com.xh.easy.easycache.utils.async.FunctionAsyncTask;
-import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
-import com.xh.easy.easycache.utils.RedissonLockService;
+import com.xh.easy.easycache.entity.model.CacheResult;
+import com.xh.easy.easycache.exception.TargetMethodExecFailedException;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Objects;
 
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 
@@ -21,11 +17,8 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 @Slf4j
 public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExecutorWrapper<T> {
 
-    private final RedissonLockService lock;
-
     public FaultTolerance(T t) {
         this.cacheExecutor = t;
-        this.lock = ClassHandler.getBeanByType(RedissonLockService.class);
     }
 
     @Override
@@ -54,6 +47,11 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
     }
 
     @Override
+    public CacheInfo wait(QueryContext context) {
+        return cacheExecutor.wait(context);
+    }
+
+    @Override
     public Object hit(QueryContext context, CacheInfo info) {
 
         // 若缓存内容为防缓存穿透默认值，返回null
@@ -62,45 +60,30 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
             return null;
         }
 
-        Object o = cacheExecutor.hit(context, info);
+        return cacheExecutor.hit(context, info);
+    }
 
-        // 若是l2缓存获取的返回值，直接返回
-        if (info.isL2Cache()) {
-            log.info("{} act=hit msg=请求命中l2缓存 result={}", LOG_STR, JSON.toJSONString(o));
-            return o;
-        }
-
-        // 缓存信息和数据库一致，直接返回
-        if (info.coherent()) {
-            log.info("{} act=hit msg=请求命中缓存 result={}", LOG_STR, JSON.toJSONString(o));
-            return o;
-        }
-
-        // 在延迟删除时效内，尝试更新缓存
-        if (info.lockTimeout(context.getElasticExpirationTime())) {
-            setValueAsync(context);
-            log.info("{} act=hit msg=请求命中缓存 result={}", LOG_STR, JSON.toJSONString(o));
-            return o;
-        }
-
-        // 在延迟删除实效外，同步更新缓存，重新执行目标方法并返回
-        return setValue(context);
+    @Override
+    public Object timeoutHit(QueryContext context, CacheInfo info) {
+        return cacheExecutor.timeoutHit(context, info);
     }
 
     @Override
     public Object miss(QueryContext context) {
-        return lock.executeTryLock(context.getKey(), () -> {
 
-            // 再次检查缓存，防止其他线程已经更新了缓存
-            CacheInfo info = getValue(context);
-            if (Objects.nonNull(info) && info.coherent()) {
-                log.info("{} act=miss msg=请求命中缓存 cacheInfo={}", LOG_STR, info);
-                return info.getValue(context.getResultType());
-            }
+        Object o = null;
+        try {
+            o = context.proceed();
+        } catch (Exception e) {
+            log.warn("{} act=miss msg=目标方法执行异常 key={}", LOG_STR, context.getKey(), e);
+            throw new TargetMethodExecFailedException("目标方法执行异常", e);
+        }
 
-            // 未命中缓存，执行目标方法并记录缓存
-            return cacheExecutor.miss(context);
-        });
+        if (o == null && context.cachePenetration()) {
+            o = CacheResult.NULL;
+        }
+
+        return cacheExecutor.setValue(context, o);
     }
 
     @Override
@@ -122,35 +105,5 @@ public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExec
      */
     private boolean cachePenetration(QueryContext context, CacheInfo info) {
         return context.cachePenetration() && info.isDefaultNullValue();
-    }
-
-    /**
-     * 异步写入缓存
-     *
-     * @param context 缓存上下文
-     */
-    private void setValueAsync(QueryContext context) {
-        FunctionAsyncTask.getRunAsyncInstance()
-            .addTask(() -> {
-                cacheExecutor.setValue(context, context.proceed());
-            }).exec();
-    }
-
-    /**
-     * 同步写入缓存
-     *
-     * @param context 缓存上下文
-     */
-    private Object setValue(QueryContext context) {
-        return lock.executeTryLock(context.getKey(), () -> {
-
-            // 获取缓存，若命中则直接返回
-            CacheInfo info = cacheExecutor.getValue(context);
-            if (info != null && info.hit() && info.coherent()) {
-                return cacheExecutor.hit(context, info);
-            }
-
-            return cacheExecutor.setValue(context, context.proceed());
-        });
     }
 }

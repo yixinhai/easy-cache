@@ -10,12 +10,15 @@ import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.exception.TargetMethodExecFailedException;
+import com.xh.easy.easycache.utils.ThreadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+import static com.xh.easy.easycache.entity.constant.CacheConfigConstant.*;
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
+import static com.xh.easy.easycache.entity.constant.LuaExecResult.*;
 
 /**
  * 缓存调度器
@@ -33,6 +36,8 @@ public class CacheDispatcher {
                 return new FaultTolerance<>(CacheBuilder.getHandler());
             }
         };
+
+    private final ThreadLocal<Long> startTime = new TransmittableThreadLocal<>();
 
 
     /**
@@ -53,6 +58,9 @@ public class CacheDispatcher {
             return ResultHandler.defaultResult(context);
         }
 
+        // 记录开始处理结果时间
+        startTime.set(System.currentTimeMillis());
+
         // 处理结果
         return handleQueryResult(context, info);
     }
@@ -69,7 +77,35 @@ public class CacheDispatcher {
         cacheExecutor.get().setCacheExecutor(info.getCacheExecutor());
 
         // 处理查询结果
-        return info.hit() ? cacheExecutor.get().hit(context, info) : cacheExecutor.get().miss(context);
+        String execResult = info.getExecResult();
+        log.info("{} act=handleQueryResult msg=查询结果：key={} execResult={}", LOG_STR, context.getKey(), execResult);
+
+        switch (execResult) {
+            case SUCCESS -> {
+                return cacheExecutor.get().hit(context, info);
+            }
+            case NEED_QUERY -> {
+                return cacheExecutor.get().miss(context);
+            }
+            case SUCCESS_NEED_QUERY -> {
+                return cacheExecutor.get().timeoutHit(context, info);
+            }
+            case NEED_WAIT -> {
+                if (System.currentTimeMillis() - startTime.get() > MAX_RETRY_TIME) {
+                    log.warn("{} act=handleQueryResult msg=查询请求超过最大重试次数 key={}", LOG_STR, context.getKey());
+                    return ResultHandler.defaultResult(context);
+                }
+
+                ThreadUtil.sleep(RETRY_TIME_INTERVAL);
+                CacheInfo waitInfo = cacheExecutor.get().wait(context);
+                return handleQueryResult(context, waitInfo);
+            }
+            default -> {
+                log.error("{} act=handleQueryResult msg=未知的查询结果 key={} execResult={}", LOG_STR, context.getKey(),
+                    execResult);
+                return ResultHandler.defaultResult(context);
+            }
+        }
     }
 
     /**

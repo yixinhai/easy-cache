@@ -19,7 +19,7 @@ public class ApplicationContextHandler implements ApplicationContextAware {
         return context.getType(name);
     }
 
-    public static Object getBeanByName(String name, Class<?> clazz) {
+    public static <T> T getBeanByName(String name, Class<T> clazz) {
         return context.getBean(name, clazz);
     }
 

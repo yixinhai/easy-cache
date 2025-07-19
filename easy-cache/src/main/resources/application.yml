@@ -1,0 +1,11 @@
+spring:
+  application.name: easy-cache
+
+lettuce:
+  redis:
+    - name: assConfigRedis
+      addr: sandbox-rs6666.rdb.zhuaninc.com:6666
+      password: 66c7d045139bab0f
+      timeout: 1000
+      connections:
+        - name: redisConnection

@@ -82,8 +82,20 @@ public class ClusterHealthInfo {
 
     /**
      * 集群缓存是否可用
+     *
+     * @param key       缓存key
+     * @param clusterId 集群ID
      */
     public static boolean isClusterAvailable(String key, String clusterId) {
-        return clusterAvailable.get(clusterId).get() && keyAvailable.getOrDefault(key, true);
+        return isClusterAvailable(clusterId) && keyAvailable.getOrDefault(key, true);
+    }
+
+    /**
+     * 集群缓存是否可用
+     *
+     * @param clusterId 集群ID
+     */
+    public static boolean isClusterAvailable(String clusterId) {
+        return clusterAvailable.get(clusterId).get();
     }
 }

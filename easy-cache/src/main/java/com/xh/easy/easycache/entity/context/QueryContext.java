@@ -4,6 +4,7 @@ import com.xh.easy.easycache.aop.CacheAble;
 import com.xh.easy.easycache.utils.RedisKeyParser;
 import com.xh.easy.easycache.base.JoinPointContext;
 import com.xh.easy.easycache.entity.model.TimeInfo;
+import com.xh.easy.easycache.utils.uuid.UuidProducer;
 import org.aspectj.lang.ProceedingJoinPoint;
 
 /**
@@ -33,6 +34,11 @@ public class QueryContext extends JoinPointContext implements CacheContext {
      */
     private final String clusterId;
 
+    /**
+     * 唯一uuid
+     */
+    private final String uuid;
+
     public QueryContext(ProceedingJoinPoint pjp) {
         super(pjp);
 
@@ -40,6 +46,7 @@ public class QueryContext extends JoinPointContext implements CacheContext {
         this.redisKeyParser = new RedisKeyParser(this.redisCache.prefix(), this.redisCache.keys(),
                 this.getMethod(), pjp.getArgs());
         this.clusterId = this.redisCache.clusterId();
+        this.uuid = UuidProducer.produce();
     }
 
     @Override
@@ -57,6 +64,10 @@ public class QueryContext extends JoinPointContext implements CacheContext {
         }
         key = redisKeyParser.parseKey();
         return key;
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 
     /**

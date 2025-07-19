@@ -7,6 +7,8 @@ import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.context.UpdateContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
+import com.xh.easy.easycache.exception.TargetMethodExecFailedException;
+import com.xh.easy.easycache.utils.async.FunctionAsyncTask;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
@@ -21,7 +23,16 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
 
     @Override
     public Object hit(QueryContext context, CacheInfo info) {
-        return info.hit() ? info.getValue(context.getResultType()) : null;
+        return info.getValue(context.getResultType());
+    }
+
+    @Override
+    public Object timeoutHit(QueryContext context, CacheInfo info) {
+        FunctionAsyncTask.getRunAsyncInstance()
+            .addTask(() -> setValue(context, info))
+            .exec();
+
+        return hit(context, info);
     }
 
     @Override
@@ -30,8 +41,14 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
         try {
             return setValue(context, context.proceed());
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            log.warn("{} act=miss msg=目标方法执行异常 key={}", LOG_STR, context.getKey());
+            throw new TargetMethodExecFailedException("目标方法执行异常", e);
         }
+    }
+
+    @Override
+    public CacheInfo wait(QueryContext context) {
+        return loadValue(context);
     }
 
     @Override
@@ -104,5 +121,4 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
      * @return 是否失效成功
      */
     protected abstract boolean invalid(CacheContext context);
-
 }

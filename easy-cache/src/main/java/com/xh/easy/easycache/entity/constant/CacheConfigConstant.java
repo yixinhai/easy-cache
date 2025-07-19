@@ -17,5 +17,13 @@ public class CacheConfigConstant {
      */
     public static final long DEFAULT_ELASTIC_CACHE_EXPIRATION_TIME = 1500L;
 
+    /**
+     * 缓存被锁定时最大重试时间
+     */
+    public static final long MAX_RETRY_TIME = 1500L;
 
+    /**
+     * 缓存被锁定时重试时间间隔
+     */
+    public static final long RETRY_TIME_INTERVAL = 100L;
 }

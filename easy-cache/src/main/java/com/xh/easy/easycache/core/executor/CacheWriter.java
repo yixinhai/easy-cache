@@ -23,6 +23,17 @@ public interface CacheWriter {
     Object hit(QueryContext context, CacheInfo info);
 
     /**
+     * 超时命中缓存
+     *
+     * @param context
+     *     缓存执行上下文
+     * @param info
+     *     缓存信息
+     * @return 缓存数据
+     */
+    Object timeoutHit(QueryContext context, CacheInfo info);
+
+    /**
      * 未命中缓存
      *
      * @param context
