@@ -26,4 +26,9 @@ public class CacheConfigConstant {
      * 缓存被锁定时重试时间间隔
      */
     public static final long RETRY_TIME_INTERVAL = 100L;
+
+    /**
+     * 获取缓存值时锁超时时间
+     */
+    public static final long GET_VALUE_UNLOCK_TIME = 1000L;
 }

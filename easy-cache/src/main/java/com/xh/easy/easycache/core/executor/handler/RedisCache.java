@@ -12,6 +12,7 @@ import com.xh.easy.easycache.core.monitor.healthy.ClusterHealthInfo;
 import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import lombok.extern.slf4j.Slf4j;
 
+import static com.xh.easy.easycache.entity.constant.CacheConfigConstant.GET_VALUE_UNLOCK_TIME;
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 import static com.xh.easy.easycache.entity.model.CacheResult.NULL;
 
@@ -38,7 +39,7 @@ public class RedisCache extends CacheChain {
     @Override
     public CacheInfo getValue(QueryContext context) {
         long currentTimeMillis = System.currentTimeMillis();
-        long unlockTime = currentTimeMillis + 1000L;
+        long unlockTime = currentTimeMillis + GET_VALUE_UNLOCK_TIME;
 
         return new CacheInfo(
             getCommands(context).getAndLock(context.getKey(), unlockTime, context.getUuid(), currentTimeMillis), this);
