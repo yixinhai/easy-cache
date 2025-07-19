@@ -29,17 +29,6 @@ import static com.xh.easy.easycache.entity.constant.LuaExecResult.*;
 @Service
 public class CacheDispatcher {
 
-    private final ThreadLocal<CacheExecutorWrapper<MultiLevelCacheExecutor>> cacheExecutor =
-        new TransmittableThreadLocal<>() {
-            @Override
-            protected FaultTolerance<MultiLevelCacheExecutor> initialValue() {
-                return new FaultTolerance<>(CacheBuilder.getHandler());
-            }
-        };
-
-    private final ThreadLocal<Long> startTime = new TransmittableThreadLocal<>();
-
-
     /**
      * 查询缓存调度
      *
@@ -47,22 +36,23 @@ public class CacheDispatcher {
      * @return 缓存内容
      */
     public Object doDispatch(QueryContext context) {
+        try (ThreadLocalManager manager = new ThreadLocalManager()) {
+            String key = context.getKey();
 
-        String key = context.getKey();
+            // 获取缓存内容，redis缓存宕机处理
+            CacheInfo info = manager.getCacheExecutor().getValue(context);
+            log.info("{} act=CacheDispatcher_doDispatch msg=缓存结果：key={} info={}", LOG_STR, key, info);
 
-        // 获取缓存内容，redis缓存宕机处理
-        CacheInfo info = cacheExecutor.get().getValue(context);
-        log.info("{} act=CacheDispatcher_doDispatch msg=缓存结果：key={} info={}", LOG_STR, key, info);
+            if (Objects.isNull(info)) {
+                return ResultHandler.defaultResult(context);
+            }
 
-        if (Objects.isNull(info)) {
-            return ResultHandler.defaultResult(context);
+            // 记录开始处理结果时间
+            manager.setStartTime(System.currentTimeMillis());
+
+            // 处理结果
+            return handleQueryResult(context, info, manager);
         }
-
-        // 记录开始处理结果时间
-        startTime.set(System.currentTimeMillis());
-
-        // 处理结果
-        return handleQueryResult(context, info);
     }
 
     /**
@@ -70,11 +60,12 @@ public class CacheDispatcher {
      *
      * @param context 缓存上下文
      * @param info 缓存信息
+     * @param manager ThreadLocal管理器
      * @return 缓存内容
      */
-    private Object handleQueryResult(QueryContext context, CacheInfo info) {
+    private Object handleQueryResult(QueryContext context, CacheInfo info, ThreadLocalManager manager) {
         // 更新缓存处理器
-        cacheExecutor.get().setCacheExecutor(info.getCacheExecutor());
+        manager.getCacheExecutor().setCacheExecutor(info.getCacheExecutor());
 
         // 处理查询结果
         String execResult = info.getExecResult();
@@ -82,23 +73,23 @@ public class CacheDispatcher {
 
         switch (execResult) {
             case SUCCESS -> {
-                return cacheExecutor.get().hit(context, info);
+                return manager.getCacheExecutor().hit(context, info);
             }
             case NEED_QUERY -> {
-                return cacheExecutor.get().miss(context);
+                return manager.getCacheExecutor().miss(context);
             }
             case SUCCESS_NEED_QUERY -> {
-                return cacheExecutor.get().timeoutHit(context, info);
+                return manager.getCacheExecutor().timeoutHit(context, info);
             }
             case NEED_WAIT -> {
-                if (System.currentTimeMillis() - startTime.get() > MAX_RETRY_TIME) {
+                if (System.currentTimeMillis() - manager.getStartTime() > MAX_RETRY_TIME) {
                     log.warn("{} act=handleQueryResult msg=查询请求超过最大重试次数 key={}", LOG_STR, context.getKey());
                     return ResultHandler.defaultResult(context);
                 }
 
                 ThreadUtil.sleep(RETRY_TIME_INTERVAL);
-                CacheInfo waitInfo = cacheExecutor.get().wait(context);
-                return handleQueryResult(context, waitInfo);
+                CacheInfo waitInfo = manager.getCacheExecutor().wait(context);
+                return handleQueryResult(context, waitInfo, manager);
             }
             default -> {
                 log.error("{} act=handleQueryResult msg=未知的查询结果 key={} execResult={}", LOG_STR, context.getKey(),
@@ -115,20 +106,63 @@ public class CacheDispatcher {
      * @return 目标方法返回值
      */
     public Object doDispatch(UpdateContext context) {
+        try (ThreadLocalManager manager = new ThreadLocalManager()) {
+            String key = context.getKey();
 
-        String key = context.getKey();
+            // TODO 记录本地消息表，启动服务时进行流量回放
 
-        // TODO 记录本地消息表，启动服务时进行流量回放
-
-        try {
-            return context.proceed();
-        } catch (Throwable e) {
-            log.warn("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
-            throw new TargetMethodExecFailedException("msg=目标方法执行异常", e);
-        } finally {
-            // 上报缓存更新
-            cacheExecutor.get().lockCacheInfo(context);
+            try {
+                return context.proceed();
+            } catch (Throwable e) {
+                log.warn("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
+                throw new TargetMethodExecFailedException("msg=目标方法执行异常", e);
+            } finally {
+                // 上报缓存更新
+                manager.getCacheExecutor().lockCacheInfo(context);
+            }
         }
+    }
+}
 
+/**
+ * ThreadLocal管理器
+ *
+ * @author yixinhai
+ */
+@Slf4j
+class ThreadLocalManager implements AutoCloseable {
+    private final ThreadLocal<CacheExecutorWrapper<MultiLevelCacheExecutor>> cacheExecutor;
+    private final ThreadLocal<Long> startTime;
+
+    public ThreadLocalManager() {
+        this.cacheExecutor = new TransmittableThreadLocal<>() {
+            @Override
+            protected FaultTolerance<MultiLevelCacheExecutor> initialValue() {
+                return new FaultTolerance<>(CacheBuilder.getHandler());
+            }
+        };
+        this.startTime = new TransmittableThreadLocal<>();
+    }
+
+    public CacheExecutorWrapper<MultiLevelCacheExecutor> getCacheExecutor() {
+        return cacheExecutor.get();
+    }
+
+    public void setStartTime(Long time) {
+        startTime.set(time);
+    }
+
+    public Long getStartTime() {
+        return startTime.get();
+    }
+
+    @Override
+    public void close() {
+        try {
+            cacheExecutor.remove();
+            startTime.remove();
+        } catch (Exception e) {
+            log.warn("{} act=ThreadLocalManager_close msg=清理ThreadLocal资源失败", LOG_STR, e);
+        }
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import javax.annotation.Nonnull;
 
-public class ApplicationContextHandler implements ApplicationContextAware {
+public class ApplicationContextAdapter implements ApplicationContextAware {
 
     private static ApplicationContext context;
 

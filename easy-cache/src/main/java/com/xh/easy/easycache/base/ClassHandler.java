@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class ClassHandler extends ApplicationContextHandler {
+public class ClassHandler {
 
     private static final ClassHandler CLASS_HANDLER = new ClassHandler();
 

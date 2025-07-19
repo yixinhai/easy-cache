@@ -1,7 +1,7 @@
 package com.xh.easy.easycache.core.monitor.healthy;
 
+import com.xh.easy.easycache.base.ApplicationContextAdapter;
 import com.xh.easy.easycache.config.ClusterConfiguration;
-import com.xh.easy.easycache.base.ClassHandler;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +34,7 @@ public class ClusterHealthInfo {
 
 
     private ClusterHealthInfo() {
-        this.clusterConfiguration = ClassHandler.getBeanByType(ClusterConfiguration.class);
+        this.clusterConfiguration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
     }
 
     public static ClusterHealthInfo getInstance() {

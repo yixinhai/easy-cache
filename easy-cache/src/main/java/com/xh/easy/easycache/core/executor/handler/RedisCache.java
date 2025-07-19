@@ -1,6 +1,6 @@
 package com.xh.easy.easycache.core.executor.handler;
 
-import com.xh.easy.easycache.base.ClassHandler;
+import com.xh.easy.easycache.base.ApplicationContextAdapter;
 import com.xh.easy.easycache.core.lua.RedisCommandsAdapter;
 import com.xh.easy.easycache.core.lua.RedisCommandsManager;
 import com.xh.easy.easycache.core.monitor.healthy.event.ClusterFault;
@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import static com.xh.easy.easycache.entity.constant.CacheConfigConstant.GET_VALUE_UNLOCK_TIME;
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
-import static com.xh.easy.easycache.entity.model.CacheResult.NULL;
 
 /**
  * 集群缓存处理器
@@ -29,7 +28,7 @@ public class RedisCache extends CacheChain {
     private final RedisCommandsManager redisCommandsManager;
 
     private RedisCache() {
-        this.redisCommandsManager = ClassHandler.getBeanByType(RedisCommandsManager.class);
+        this.redisCommandsManager = ApplicationContextAdapter.getBeanByType(RedisCommandsManager.class);
     }
 
     public static RedisCache getInstance() {

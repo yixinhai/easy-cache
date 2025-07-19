@@ -1,7 +1,7 @@
 package com.xh.easy.easycache.core.monitor.healthy;
 
+import com.xh.easy.easycache.base.ApplicationContextAdapter;
 import com.xh.easy.easycache.config.ClusterConfiguration;
-import com.xh.easy.easycache.base.ClassHandler;
 import com.xh.easy.easycache.base.TimeWindowCounter;
 import com.xh.easy.easycache.core.executor.CacheHealthyChecker;
 import com.xh.easy.easycache.core.executor.handler.RedisCache;
@@ -75,7 +75,7 @@ public class FaultDynamicManager implements CacheVisitor {
     private FaultDynamicManager() {
         this.clusterHealthInfo = ClusterHealthInfo.getInstance();
         this.redisCache = RedisCache.getInstance();
-        this.clusterConfiguration = ClassHandler.getBeanByType(ClusterConfiguration.class);
+        this.clusterConfiguration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
     }
 
     public static FaultDynamicManager getInstance() {
