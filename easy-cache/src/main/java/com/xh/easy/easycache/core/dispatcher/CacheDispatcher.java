@@ -27,14 +27,9 @@ import static com.xh.easy.easycache.entity.constant.LuaExecResult.*;
  */
 @Slf4j
 @Service
-public class CacheDispatcher {
+public class CacheDispatcher implements QueryDispatcher, UpdateDispatcher {
 
-    /**
-     * 查询缓存调度
-     *
-     * @param context 缓存上下文
-     * @return 缓存内容
-     */
+    @Override
     public Object doDispatch(QueryContext context) {
         try (ThreadLocalManager manager = new ThreadLocalManager()) {
             String key = context.getKey();
@@ -52,6 +47,25 @@ public class CacheDispatcher {
 
             // 处理结果
             return handleQueryResult(context, info, manager);
+        }
+    }
+
+    @Override
+    public Object doDispatch(UpdateContext context) {
+        try (ThreadLocalManager manager = new ThreadLocalManager()) {
+            String key = context.getKey();
+
+            // TODO 记录本地消息表，启动服务时进行流量回放
+
+            try {
+                return context.proceed();
+            } catch (Throwable e) {
+                log.warn("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
+                throw new TargetMethodExecFailedException("msg=目标方法执行异常", e);
+            } finally {
+                // 上报缓存更新
+                manager.getCacheExecutor().lockCacheInfo(context);
+            }
         }
     }
 
@@ -95,30 +109,6 @@ public class CacheDispatcher {
                 log.error("{} act=handleQueryResult msg=未知的查询结果 key={} execResult={}", LOG_STR, context.getKey(),
                     execResult);
                 return ResultHandler.defaultResult(context);
-            }
-        }
-    }
-
-    /**
-     * 更新缓存调度
-     *
-     * @param context 缓存上下文
-     * @return 目标方法返回值
-     */
-    public Object doDispatch(UpdateContext context) {
-        try (ThreadLocalManager manager = new ThreadLocalManager()) {
-            String key = context.getKey();
-
-            // TODO 记录本地消息表，启动服务时进行流量回放
-
-            try {
-                return context.proceed();
-            } catch (Throwable e) {
-                log.warn("act=CacheDispatcher_doDispatch msg=目标方法执行异常 key={}", key, e);
-                throw new TargetMethodExecFailedException("msg=目标方法执行异常", e);
-            } finally {
-                // 上报缓存更新
-                manager.getCacheExecutor().lockCacheInfo(context);
             }
         }
     }
