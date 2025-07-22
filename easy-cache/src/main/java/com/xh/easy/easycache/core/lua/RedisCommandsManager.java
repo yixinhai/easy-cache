@@ -16,7 +16,7 @@ public class RedisCommandsManager {
     @Resource(name = "redisConnection")
     private StatefulRedisConnection<String, String> connection;
 
-    public RedisCommandsAdapter getRedisCommands(String clusterId) {
+    public RedisConnection getRedisCommands(String clusterId) {
         return EvalShaAdapter.of(connection.sync());
     }
 }

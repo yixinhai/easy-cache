@@ -1,8 +1,8 @@
 package com.xh.easy.easycache.core.executor.handler;
 
 import com.xh.easy.easycache.base.ApplicationContextAdapter;
-import com.xh.easy.easycache.core.lua.RedisCommandsAdapter;
 import com.xh.easy.easycache.core.lua.RedisCommandsManager;
+import com.xh.easy.easycache.core.lua.RedisConnection;
 import com.xh.easy.easycache.core.monitor.healthy.event.ClusterFault;
 import com.xh.easy.easycache.entity.context.CacheContext;
 import com.xh.easy.easycache.entity.model.CacheInfo;
@@ -41,7 +41,7 @@ public class RedisCache extends CacheChain {
         long unlockTime = currentTimeMillis + GET_VALUE_UNLOCK_TIME;
 
         return new CacheInfo(
-            getCommands(context).getAndLock(context.getKey(), unlockTime, context.getUuid(), currentTimeMillis), this);
+            getConnection(context).getAndLock(context.getKey(), unlockTime, context.getUuid(), currentTimeMillis), this);
     }
 
     @Override
@@ -56,9 +56,9 @@ public class RedisCache extends CacheChain {
             String value = this.convertValue(o);
 
             if (timeInfo.getExpireTime() > 0) {
-                getCommands(context).set(key, value, uuid, timeInfo.toSeconds());
+                getConnection(context).set(key, value, uuid, timeInfo.toSeconds());
             } else {
-                getCommands(context).set(key, value, uuid);
+                getConnection(context).set(key, value, uuid);
             }
 
         } catch (Exception e) {
@@ -71,12 +71,12 @@ public class RedisCache extends CacheChain {
 
     @Override
     public boolean ping(String clusterId) {
-        return getCommands(clusterId).ping();
+        return getConnection(clusterId).ping();
     }
 
     @Override
     public boolean invalid(CacheContext context) {
-        return getCommands(context).invalid(context.getKey(), ((QueryContext)context).getElasticExpirationTime())
+        return getConnection(context).invalid(context.getKey(), ((QueryContext)context).getElasticExpirationTime())
             .invalidSuccess();
     }
 
@@ -100,8 +100,8 @@ public class RedisCache extends CacheChain {
      *
      * @param context 缓存上下文
      */
-    private RedisCommandsAdapter getCommands(CacheContext context) {
-    	return getCommands(context.getClusterId());
+    private RedisConnection getConnection(CacheContext context) {
+    	return getConnection(context.getClusterId());
     }
 
     /**
@@ -109,7 +109,7 @@ public class RedisCache extends CacheChain {
      *
      * @param clusterId 集群ID
      */
-    private RedisCommandsAdapter getCommands(String clusterId) {
+    private RedisConnection getConnection(String clusterId) {
     	return redisCommandsManager.getRedisCommands(clusterId);
     }
 }
