@@ -19,7 +19,13 @@ public class LuaSh {
         return SH_DIGEST_MAP.get(luaShEnum.operation);
     }
 
-    protected static void putShDigest(String operation, String digest) {
+    /**
+     * 记录lua脚本的digest
+     *
+     * @param operation 脚本操作 {@link LuaShEnum}
+     * @param digest redis服务器生成对应脚本的hash值
+     */
+    protected static void recordShDigest(String operation, String digest) {
         SH_DIGEST_MAP.put(operation, digest);
     }
 

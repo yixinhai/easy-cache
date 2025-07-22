@@ -75,4 +75,11 @@ public interface RedisConnection {
      * @return 探活结果
      */
     boolean ping();
+
+    /**
+     * 将lua脚本加载到redis服务器
+     *
+     * @param luaScript lua脚本
+     */
+    String scriptLoad(String luaScript);
 }

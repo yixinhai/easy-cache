@@ -34,12 +34,13 @@ public abstract class RedisCommandsAdapter implements RedisConnection {
         return set(key, value, owner, 0);
     };
 
-    /**
-     * 缓存集群探活
-     *
-     * @return 探活结果
-     */
+    @Override
     public boolean ping() {
         return "PONG".equals(commands.ping());
+    }
+
+    @Override
+    public String scriptLoad(String luaScript) {
+        return commands.scriptLoad(luaScript);
     }
 }
