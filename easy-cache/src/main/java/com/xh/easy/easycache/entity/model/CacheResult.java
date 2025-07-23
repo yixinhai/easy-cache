@@ -37,7 +37,7 @@ public class CacheResult {
      *     缓存内容目标类型
      */
     protected Object getValue(Type type) {
-        return SerializerManager.jsonSerializer().deserialize(value, type);
+        return value == null || value.isBlank() ? null : SerializerManager.jsonSerializer().deserialize(value, type);
     }
 
     /**

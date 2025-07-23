@@ -3,6 +3,8 @@ package com.xh.easy.easycache.base;
 import java.time.Instant;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TimeWindowCounter {
 
@@ -88,15 +90,20 @@ public class TimeWindowCounter {
     private void cleanExpiredEvents() {
         System.out.println("Cleaning expired events...");
         Instant cutoff = Instant.now().minusMillis(windowSizeMs);
+        List<String> emptyQueues = new ArrayList<>();
+        
+        // 第一阶段：只读遍历，收集需要删除的key
         eventQueues.forEach((operationId, queue) -> {
             while (!queue.isEmpty() && queue.peek().timestamp.isBefore(cutoff)) {
-                queue.poll();
+                queue.poll();  // 只修改queue内容，不修改Map结构
             }
-            // 如果队列空了，移除该操作ID对应的队列
             if (queue.isEmpty()) {
-                eventQueues.remove(operationId);
+                emptyQueues.add(operationId);  // 只是记录，不删除
             }
         });
+        
+        // 第二阶段：批量删除，此时已经结束遍历
+        emptyQueues.forEach(eventQueues::remove);
     }
 
     public void shutdown() {

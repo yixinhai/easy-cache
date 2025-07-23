@@ -29,8 +29,7 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
     @Override
     public Object timeoutHit(QueryContext context, CacheInfo info) {
         FunctionAsyncTask.getRunAsyncInstance()
-            .addTask(() -> setValue(context, info))
-            .exec();
+            .addTask(() -> setValue(context, info));
 
         return hit(context, info);
     }

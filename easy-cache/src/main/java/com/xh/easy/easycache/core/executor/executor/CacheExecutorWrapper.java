@@ -12,10 +12,15 @@ public abstract class CacheExecutorWrapper<T extends CacheExecutor> implements C
      */
     protected T cacheExecutor;
 
+
+    public CacheExecutorWrapper(T t) {
+        this.cacheExecutor = t;
+    }
+
     /**
      * 设置被装饰的缓存执行器
      *
      * @param t 缓存执行器
      */
-    public abstract void setCacheExecutor(T t);
+    public abstract void changeCacheExecutor(T t);
 }

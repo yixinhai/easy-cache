@@ -40,7 +40,7 @@ public class LuaShPublisher implements LoadScriptVisitor {
                     log.warn("{} act=LuaShPublisher_init msg=发布Lua脚本异常", LOG_STR, e);
                 }
             }
-        });
+        }).start();
     }
 
     /**

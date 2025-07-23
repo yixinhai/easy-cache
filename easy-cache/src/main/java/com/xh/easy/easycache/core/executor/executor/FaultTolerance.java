@@ -18,11 +18,11 @@ import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 public class FaultTolerance<T extends MultiLevelCacheExecutor> extends CacheExecutorWrapper<T> {
 
     public FaultTolerance(T t) {
-        this.cacheExecutor = t;
+        super(t);
     }
 
     @Override
-    public void setCacheExecutor(T t) {
+    public void changeCacheExecutor(T t) {
         this.cacheExecutor = t;
     }
 

@@ -2,9 +2,7 @@ package com.xh.easy.easycache.core.dispatcher;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.xh.easy.easycache.base.ResultHandler;
-import com.xh.easy.easycache.core.executor.executor.CacheExecutorWrapper;
-import com.xh.easy.easycache.core.executor.executor.FaultTolerance;
-import com.xh.easy.easycache.core.executor.executor.MultiLevelCacheExecutor;
+import com.xh.easy.easycache.core.executor.executor.*;
 import com.xh.easy.easycache.core.executor.handler.CacheBuilder;
 import com.xh.easy.easycache.entity.model.CacheInfo;
 import com.xh.easy.easycache.entity.context.QueryContext;
@@ -79,7 +77,7 @@ public class CacheDispatcher implements QueryDispatcher, UpdateDispatcher {
      */
     private Object handleQueryResult(QueryContext context, CacheInfo info, ThreadLocalManager manager) {
         // 更新缓存处理器
-        manager.getCacheExecutor().setCacheExecutor(info.getCacheExecutor());
+        manager.getCacheExecutor().changeCacheExecutor(info.getCacheExecutor());
 
         // 处理查询结果
         String execResult = info.getExecResult();

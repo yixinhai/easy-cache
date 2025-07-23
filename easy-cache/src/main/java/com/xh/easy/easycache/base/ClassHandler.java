@@ -95,13 +95,6 @@ public class ClassHandler {
         return field.isAnnotationPresent(annotationClass);
     }
 
-    public boolean isPrimitiveType(Class<?> clazz) {
-        return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Integer.class)
-                || clazz.equals(Long.class) || clazz.equals(Double.class) || clazz.equals(Float.class)
-                || clazz.equals(Short.class) || clazz.equals(Byte.class) || clazz.equals(Character.class)
-                || clazz.equals(Boolean.class);
-    }
-
     /**
      * 获取调用方的详细信息
      * @return 包含类名、方法名、文件名和行号的字符串
