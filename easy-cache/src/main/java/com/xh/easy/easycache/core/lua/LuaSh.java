@@ -133,6 +133,7 @@ public class LuaSh {
             + "redis.call('HSET', key, '" + LOCK_INFO + "', 'locked')\n"
             + "if not value or value == '' then\n" 
             + "    return {true, '" + EMPTY_VALUE_SUCCESS + "'}\n"
+            + "end\n"
             + "if newUnlockTime > 0 then\n"
             + "    redis.call('HSET', key, '" + UNLOCK_TIME + "', newUnlockTime)\n"
             + "end\n"
