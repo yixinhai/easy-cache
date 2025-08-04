@@ -1,6 +1,5 @@
 package com.xh.easy.easycache.utils.serialze;
 
-import cn.hutool.core.util.TypeUtil;
 import cn.hutool.json.JSONUtil;
 
 import java.lang.reflect.Type;
@@ -56,7 +55,7 @@ public class JsonSerializer extends AbstractSerializer {
     @Override
     public Object deserialize(String data, Type type) throws SerializeException {
         try {
-            return JSONUtil.toBean(data, TypeUtil.getClass(type));
+            return JSONUtil.toBean(data, type, false);
         } catch (Exception e) {
             throw new SerializeException(LOG_STR + " Failed to deserialize json by type", e);
         }

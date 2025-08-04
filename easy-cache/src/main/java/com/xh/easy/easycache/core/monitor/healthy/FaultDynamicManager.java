@@ -17,6 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
+
 /**
  * 故障动态管理
  *
@@ -90,8 +92,8 @@ public class FaultDynamicManager implements CacheVisitor {
             .forEach(clusterId -> clusterExploreAble.put(clusterId, new AtomicBoolean(true)));
 
         // 启动集群健康度检查任务
-        healthyChecker.scheduleAtFixedRate(this::checkClusterHealthLevel, CLUSTER_HEALTH_LEVEL_CHECK_MS * 600,
-            CLUSTER_HEALTH_LEVEL_CHECK_MS, TimeUnit.MILLISECONDS);
+        healthyChecker.scheduleAtFixedRate(this::checkClusterHealthLevel, CLUSTER_HEALTH_LEVEL_CHECK_MS * 60,
+            CLUSTER_HEALTH_LEVEL_CHECK_MS * 60, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -114,7 +116,7 @@ public class FaultDynamicManager implements CacheVisitor {
 
     @Override
     public void visit(ClusterFault element) {
-        if (element.sendByCluster()) {
+        if (!element.sendByCluster()) {
             return;
         }
 
@@ -146,8 +148,12 @@ public class FaultDynamicManager implements CacheVisitor {
             healthyChecker.scheduleAtFixedRate(() -> {
 
                 // 探活操作
-                if (redisCache.ping(clusterId)) {
-                    clusterHealthInfo.clusterAvailable(clusterId);
+                try {
+                    if (redisCache.ping(clusterId)) {
+                        clusterHealthInfo.clusterAvailable(clusterId);
+                    }
+                } catch (Exception e) {
+                    log.warn("{} act=exploreClusterHealthLevel msg=集群探活失败 clusterId={}", LOG_STR, clusterId, e);
                 }
 
             }, 0, CLUSTER_HEALTH_LEVEL_EXPLORE_MS, TimeUnit.MILLISECONDS);

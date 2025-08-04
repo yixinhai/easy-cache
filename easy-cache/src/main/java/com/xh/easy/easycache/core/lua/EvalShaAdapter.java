@@ -2,6 +2,7 @@ package com.xh.easy.easycache.core.lua;
 
 import com.xh.easy.easycache.core.lua.event.NoScriptEvent;
 import com.xh.easy.easycache.entity.model.CacheResult;
+import com.xh.easy.easycache.utils.Assert;
 import io.lettuce.core.RedisNoScriptException;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -92,6 +93,8 @@ public class EvalShaAdapter extends RedisCommandsAdapter {
             // 重新加载脚本
             new NoScriptEvent(this).accept();
         }
+
+        Assert.notBlank(result[1], "lua脚本执行结果为空");
         return new CacheResult(result[0], result[1]);
     }
 

@@ -1,6 +1,8 @@
 package com.xh.easy.easycache.utils;
 
 /**
+ * 断言
+ *
  * @author yixinhai
  */
 public class Assert {
