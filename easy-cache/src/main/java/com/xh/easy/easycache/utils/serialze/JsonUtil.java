@@ -29,4 +29,8 @@ public class JsonUtil {
     public static byte[] toJSONBytes(Object object) {
         return JSON.toJSONBytes(object, features);
     }
+
+    public static String toJSONString(Object object) {
+        return JSON.toJSONString(object, features);
+    }
 }

@@ -71,6 +71,10 @@ public class CacheInfo {
         return cacheExecutor;
     }
 
+    @Override
+    public String toString() {
+        return "CacheInfo{" + "cacheResult=" + cacheResult + ", isL2Cache=" + isL2Cache + '}';
+    }
 
     /**
      * 获取缓存内容

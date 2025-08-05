@@ -27,7 +27,7 @@ public class RedisCache extends CacheChain {
 
     private static final RedisCache INSTANCE = new RedisCache();
 
-    private RedisCommandsManager redisCommandsManager;
+    private final RedisCommandsManager redisCommandsManager;
 
     private RedisCache() {
         this.redisCommandsManager = ApplicationContextAdapter.getBeanByType(RedisCommandsManager.class);
@@ -35,11 +35,6 @@ public class RedisCache extends CacheChain {
 
     public static RedisCache getInstance() {
         return INSTANCE;
-    }
-
-    @PostConstruct
-    private void init() {
-        this.redisCommandsManager = ApplicationContextAdapter.getBeanByType(RedisCommandsManager.class);
     }
 
     @Override

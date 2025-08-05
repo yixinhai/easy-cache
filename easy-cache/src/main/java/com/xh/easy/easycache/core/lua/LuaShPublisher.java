@@ -60,7 +60,7 @@ public class LuaShPublisher implements LoadScriptVisitor {
         for (LuaSh.LuaShEnum sh : LuaSh.LuaShEnum.values()) {
 
             // 上传lua脚本到redis服务器
-            String script = connection.scriptLoad(sh.getOperation());
+            String script = connection.scriptLoad(sh.getSh());
             Assert.notBlank(script, "未获取到集群响应的SHA1 digest");
 
             // 记录脚本对应hash

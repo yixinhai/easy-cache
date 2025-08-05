@@ -64,7 +64,7 @@ public class TimeWindowCounter {
 
     public void increment(String operationId) {
         ConcurrentLinkedQueue<Event> queue = eventQueues.get(operationId);
-        if (queue.size() < maxQueueSize) {
+        if (queue == null || queue.size() < maxQueueSize) {
             eventQueues.computeIfAbsent(operationId, k -> new ConcurrentLinkedQueue<>())
                     .add(new Event(Instant.now()));
         }

@@ -30,6 +30,11 @@ public class CacheResult {
         return resultType;
     }
 
+    @Override
+    public String toString() {
+        return "CacheResult{" + "value='" + value + '\'' + ", resultType='" + resultType + '\'' + '}';
+    }
+
     /**
      * 获取缓存内容
      *

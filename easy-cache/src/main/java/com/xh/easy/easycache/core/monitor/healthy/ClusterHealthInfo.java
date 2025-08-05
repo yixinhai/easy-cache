@@ -16,8 +16,6 @@ public class ClusterHealthInfo {
 
     private static final ClusterHealthInfo INSTANCE = new ClusterHealthInfo();
 
-    private ClusterConfiguration clusterConfiguration;
-
     /**
      * 集群可用性
      * key: 集群ID
@@ -34,19 +32,22 @@ public class ClusterHealthInfo {
 
 
     private ClusterHealthInfo() {
+
+        // 初始化集群可用性
+        initClusterAvailable();
     }
 
     public static ClusterHealthInfo getInstance() {
         return INSTANCE;
     }
 
-    @PostConstruct
-    public void init() {
-        this.clusterConfiguration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
-
-        // 初始化集群可用性
-        clusterConfiguration.getClusterIds()
-                .forEach(clusterId -> clusterAvailable.put(clusterId, new AtomicBoolean(true)));
+    /**
+     * 初始化集群可用性
+     */
+    private void initClusterAvailable() {
+        ClusterConfiguration configuration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
+        configuration.getClusterIds()
+            .forEach(clusterId -> clusterAvailable.put(clusterId, new AtomicBoolean(true)));
     }
 
     /**

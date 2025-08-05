@@ -65,6 +65,30 @@ public interface Serializer {
     String serialize2String(Object object, ClassLoader classLoader) throws SerializeException;
 
     /**
+     * 序列化
+     *
+     * @param object
+     *     需要序列化的对象
+     * @return 序列化后的字符串
+     * @throws SerializeException
+     *     序列化异常
+     */
+    String serialize2JsonString(Object object) throws SerializeException;
+
+    /**
+     * 序列化
+     *
+     * @param object
+     *     需要序列化的对象
+     * @param classLoader
+     *     类加载器
+     * @return 序列化后的字符串
+     * @throws SerializeException
+     *     序列化异常
+     */
+    String serialize2JsonString(Object object, ClassLoader classLoader) throws SerializeException;
+
+    /**
      * 反序列化
      *
      * @param data

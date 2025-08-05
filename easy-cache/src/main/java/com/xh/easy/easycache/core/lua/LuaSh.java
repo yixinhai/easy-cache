@@ -75,7 +75,7 @@ public class LuaSh {
             + "    return {value, '" + NEED_QUERY + "'}\n"
             + "end\n"
             + "if not value or value == '' then\n"
-            + "    if owner then\n"
+            + "    if lockOwner and lockOwner ~= owner then\n"
             + "        return {value, '" + NEED_WAIT + "'}\n"
             + "    end\n"
             + "    redis.call('HMSET', key, '" + LOCK_INFO + "', 'locked', '" + UNLOCK_TIME + "', newUnlockTime, '" + OWNER + "', owner)\n"

@@ -53,6 +53,23 @@ public class JsonSerializer extends AbstractSerializer {
     }
 
     @Override
+    public String serialize2JsonString(Object object, ClassLoader classLoader) throws SerializeException {
+        ClassLoader swap = Thread.currentThread().getContextClassLoader();
+        try {
+            if (classLoader != null) {
+                Thread.currentThread().setContextClassLoader(classLoader);
+            }
+            return JsonUtil.toJSONString(object);
+        } catch (Throwable t) {
+            throw new SerializeException(LOG_STR + " Failed to serialize json", t);
+        } finally {
+            if (classLoader != null) {
+                Thread.currentThread().setContextClassLoader(swap);
+            }
+        }
+    }
+
+    @Override
     public Object deserialize(String data, Type type) throws SerializeException {
         try {
             return JSONUtil.toBean(data, type, false);

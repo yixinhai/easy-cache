@@ -8,6 +8,8 @@ import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 
 /**
@@ -80,7 +82,7 @@ public class EvalShaAdapter extends RedisCommandsAdapter {
      */
     private CacheResult evalsha(LuaSh.LuaShEnum type, String key, String... args) {
 
-        String[] result = null;
+        List<String> result = null;
 
         try {
             result = commands.evalsha(LuaSh.getDigest(type), OUTPUT_TYPE, new String[] {key}, args);
@@ -94,8 +96,8 @@ public class EvalShaAdapter extends RedisCommandsAdapter {
             new NoScriptEvent(this).accept();
         }
 
-        Assert.notBlank(result[1], "lua脚本执行结果为空");
-        return new CacheResult(result[0], result[1]);
+        Assert.notBlank(result.get(1), "lua脚本执行结果为空");
+        return new CacheResult(result.get(0), result.get(1));
     }
 
     /**
@@ -106,7 +108,7 @@ public class EvalShaAdapter extends RedisCommandsAdapter {
      * @param args  缓存参数
      * @return 脚本执行结果
      */
-    private String[] eval(LuaSh.LuaShEnum type, String key, String... args) {
+    private List<String> eval(LuaSh.LuaShEnum type, String key, String... args) {
         return commands.eval(type.getSh(), OUTPUT_TYPE, new String[] {key}, args);
     }
 }

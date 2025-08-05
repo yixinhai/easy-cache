@@ -25,6 +25,11 @@ public abstract class AbstractSerializer implements Serializer {
     }
 
     @Override
+    public String serialize2JsonString(Object object) throws SerializeException {
+        return serialize2JsonString(object, null);
+    }
+
+    @Override
     public <T> T deserialize(byte[] data, Class<T> clazz) throws SerializeException {
         return data == null || data.length == 0 ? null : deserialize(data, clazz, null);
     }
