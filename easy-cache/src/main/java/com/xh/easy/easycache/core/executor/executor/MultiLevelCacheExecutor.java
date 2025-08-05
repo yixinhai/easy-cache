@@ -52,7 +52,7 @@ public abstract class MultiLevelCacheExecutor implements CacheExecutor {
 
     @Override
     public void lockCacheInfo(UpdateContext context) {
-        CacheBuilder.getAllHandler().forEach(handler -> {
+        CacheBuilder.build().getAllHandler().forEach(handler -> {
             try {
                 if (!invalid(context)) {
                     updateFailed(context, handler);

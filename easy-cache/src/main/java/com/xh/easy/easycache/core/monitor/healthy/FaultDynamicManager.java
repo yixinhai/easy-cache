@@ -128,7 +128,7 @@ public class FaultDynamicManager implements CacheVisitor {
      */
     private void checkClusterHealthLevel() {
         for (String clusterId : clusterConfiguration.getClusterIds()) {
-            if (!ClusterHealthInfo.isClusterAvailable(clusterId)
+            if (!ClusterHealthInfo.getInstance().isClusterAvailable(clusterId)
                 && faultCounter.getCount(clusterId) >= FAULT_TOLERABLE_QUANTITY) {
 
                 // 集群不可用

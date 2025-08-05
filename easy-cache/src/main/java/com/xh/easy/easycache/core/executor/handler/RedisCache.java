@@ -12,6 +12,8 @@ import com.xh.easy.easycache.core.monitor.healthy.ClusterHealthInfo;
 import com.xh.easy.easycache.utils.serialze.SerializerManager;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.PostConstruct;
+
 import static com.xh.easy.easycache.entity.constant.CacheConfigConstant.GET_VALUE_UNLOCK_TIME;
 import static com.xh.easy.easycache.entity.constant.LogStrConstant.LOG_STR;
 
@@ -25,7 +27,7 @@ public class RedisCache extends CacheChain {
 
     private static final RedisCache INSTANCE = new RedisCache();
 
-    private final RedisCommandsManager redisCommandsManager;
+    private RedisCommandsManager redisCommandsManager;
 
     private RedisCache() {
         this.redisCommandsManager = ApplicationContextAdapter.getBeanByType(RedisCommandsManager.class);
@@ -33,6 +35,11 @@ public class RedisCache extends CacheChain {
 
     public static RedisCache getInstance() {
         return INSTANCE;
+    }
+
+    @PostConstruct
+    private void init() {
+        this.redisCommandsManager = ApplicationContextAdapter.getBeanByType(RedisCommandsManager.class);
     }
 
     @Override
@@ -82,7 +89,7 @@ public class RedisCache extends CacheChain {
 
     @Override
     public boolean support(QueryContext context) {
-        return ClusterHealthInfo.isClusterAvailable(context.getKey(), context.getClusterId());
+        return ClusterHealthInfo.getInstance().isClusterAvailable(context.getKey(), context.getClusterId());
     }
 
     /**

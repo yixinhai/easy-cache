@@ -92,7 +92,7 @@ class ThreadLocalManager implements AutoCloseable {
         this.cacheExecutor = new TransmittableThreadLocal<>() {
             @Override
             protected FaultTolerance<MultiLevelCacheExecutor> initialValue() {
-                return new FaultTolerance<>(CacheBuilder.getHandler());
+                return new FaultTolerance<>(CacheBuilder.build().getHandler());
             }
         };
     }

@@ -1,5 +1,6 @@
 package com.xh.easy.easycache.core.executor.handler;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -9,24 +10,29 @@ import java.util.List;
  */
 public class CacheBuilder {
 
-    private static CacheChain head;
+    private static final CacheBuilder INSTANCE = new CacheBuilder();
 
-    private static final CacheChain localCache = LocalCache.getInstance();
+    private CacheChain head;
 
-    private static final CacheChain redisCache = RedisCache.getInstance();
+    private final CacheChain localCache = LocalCache.getInstance();
 
-    private static final List<CacheChain> cacheHandlers = List.of(redisCache, localCache);
+    private final CacheChain redisCache = RedisCache.getInstance();
 
-    static {
+    private final List<CacheChain> cacheHandlers = Arrays.asList(redisCache, localCache);
 
+    private CacheBuilder() {
         // 初始化缓存处理器链
         buildCacheHandler();
+    }
+
+    public static CacheBuilder build() {
+        return INSTANCE;
     }
 
     /**
      * 构建缓存处理器执行链
      */
-    private static void buildCacheHandler() {
+    private void buildCacheHandler() {
 
         redisCache.setNext(localCache);
 
@@ -38,11 +44,11 @@ public class CacheBuilder {
      *
      * @return 缓存处理器
      */
-    public static CacheChain getHandler() {
+    public CacheChain getHandler() {
         return head;
     }
 
-    public static List<CacheChain> getAllHandler() {
+    public List<CacheChain> getAllHandler() {
         return cacheHandlers;
     }
 }

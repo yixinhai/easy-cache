@@ -16,25 +16,24 @@ public class ClusterHealthInfo {
 
     private static final ClusterHealthInfo INSTANCE = new ClusterHealthInfo();
 
-    private final ClusterConfiguration clusterConfiguration;
+    private ClusterConfiguration clusterConfiguration;
 
     /**
      * 集群可用性
      * key: 集群ID
      * value: 是否可用
      */
-    private static final ConcurrentHashMap<String, AtomicBoolean> clusterAvailable = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicBoolean> clusterAvailable = new ConcurrentHashMap<>();
 
     /**
      * 缓存单个key可用性
      * key: 缓存key
      * value: 是否可用
      */
-    private static final ConcurrentHashMap<String, Boolean> keyAvailable = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Boolean> keyAvailable = new ConcurrentHashMap<>();
 
 
     private ClusterHealthInfo() {
-        this.clusterConfiguration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
     }
 
     public static ClusterHealthInfo getInstance() {
@@ -43,6 +42,8 @@ public class ClusterHealthInfo {
 
     @PostConstruct
     public void init() {
+        this.clusterConfiguration = ApplicationContextAdapter.getBeanByType(ClusterConfiguration.class);
+
         // 初始化集群可用性
         clusterConfiguration.getClusterIds()
                 .forEach(clusterId -> clusterAvailable.put(clusterId, new AtomicBoolean(true)));
@@ -86,7 +87,7 @@ public class ClusterHealthInfo {
      * @param key       缓存key
      * @param clusterId 集群ID
      */
-    public static boolean isClusterAvailable(String key, String clusterId) {
+    public boolean isClusterAvailable(String key, String clusterId) {
         return isClusterAvailable(clusterId) && keyAvailable.getOrDefault(key, true);
     }
 
@@ -95,7 +96,7 @@ public class ClusterHealthInfo {
      *
      * @param clusterId 集群ID
      */
-    public static boolean isClusterAvailable(String clusterId) {
+    public boolean isClusterAvailable(String clusterId) {
         return clusterAvailable.get(clusterId).get();
     }
 }
