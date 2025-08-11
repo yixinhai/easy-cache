@@ -7,6 +7,7 @@
 ## 📖 项目简介
 
 Easy-Cache 是一个基于 Spring Boot 的高性能多级缓存框架，提供简单易用的注解式缓存操作。该框架支持 Redis 集群缓存和本地二级缓存，具备多级缓存动态升降级、容错机制、缓存穿透防护、弹性过期、最终一致性保障等高级特性。开发人员在开发需求时不需要额外编写代码保证一致性、穿透、雪崩、宕机问题，只需要在注解设置对应策略即可。
+微信公众号：https://mp.weixin.qq.com/s/OENxcvRSGtkPtNzjWwK6KQ
 
 【流程设计思路参照了RocksCache <https://github.com/dtm-labs/rockscache.git>】
 
